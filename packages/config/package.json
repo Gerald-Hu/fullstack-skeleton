@@ -1,0 +1,15 @@
+{
+  "name": "@repo/config",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "files": [
+    "eslint-preset.js",
+    "typescript-config/*"
+  ],
+  "dependencies": {
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-config-turbo": "^1.10.16"
+  }
+}
