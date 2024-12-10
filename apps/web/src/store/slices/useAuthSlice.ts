@@ -1,13 +1,16 @@
 import { create } from 'zustand';
 import { trpc } from '@/utils/trpc';
 import { loginSchema, signupSchema } from '../../../../api/src/auth/auth.router';
+import { withRefresh } from '@/utils/token-refresh';
 import { z } from 'zod';
 
-export interface User {
-  id: string;
-  email: string;
-  name?: string;
-}
+export const userSchema = z.object({
+  id: z.string(),
+  email: z.string().email(),
+  name: z.string().optional(),
+}).strict();
+
+export type User = z.infer<typeof userSchema>;
 
 interface AuthState {
   user: User | null;
@@ -35,50 +38,48 @@ export const useAuthSlice = create<AuthSlice>((set) => ({
   error: null,
 
   // Actions
-  login: async (email: string, password: string) => {
+  login: async (email, password) => {
     set({ isLoading: true, error: null });
     try {
       await trpc.auth.login.mutate({ email, password });
       const user = await trpc.auth.me.query();
-      if (!user) {
-        throw new Error('Login failed');
-      }
       set({
-        user,
+        user: userSchema.parse(user),
         isAuthenticated: true,
         isLoading: false,
       });
     } catch (error) {
       set({
-        error: error instanceof Error ? error.message : 'An error occurred during login',
+        user: null,
+        isAuthenticated: false,
         isLoading: false,
+        error: error instanceof Error ? error.message : 'An error occurred during login',
       });
     }
   },
 
-  signup: async (email: string, password: string, name?: string) => {
+  signup: async (email, password, name) => {
     set({ isLoading: true, error: null });
     try {
       await trpc.auth.signup.mutate({ email, password, name });
       const user = await trpc.auth.me.query();
-      if (!user) {
-        throw new Error('Signup failed');
-      }
       set({
-        user,
+        user: userSchema.parse(user),
         isAuthenticated: true,
         isLoading: false,
       });
     } catch (error) {
       set({
-        error: error instanceof Error ? error.message : 'An error occurred during signup',
+        user: null,
+        isAuthenticated: false,
         isLoading: false,
+        error: error instanceof Error ? error.message : 'An error occurred during signup',
       });
     }
   },
 
   logout: async () => {
-    set({ isLoading: true });
+    set({ isLoading: true, error: null });
     try {
       await trpc.auth.logout.mutate();
       set({
@@ -94,38 +95,45 @@ export const useAuthSlice = create<AuthSlice>((set) => ({
     }
   },
 
-  fetchUser: async () => {
+  fetchUser: withRefresh(async () => {
     set({ isLoading: true });
     try {
       const user = await trpc.auth.me.query();
-      set({
-        user,
-        isAuthenticated: !!user,
-        isLoading: false,
-      });
+      if (user) {
+        set({
+          user: userSchema.parse(user),
+          isAuthenticated: true,
+          isLoading: false,
+        });
+      } else {
+        set({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+      }
     } catch (error) {
       set({
         user: null,
         isAuthenticated: false,
         isLoading: false,
       });
+      throw error;
     }
-  },
+  }),
 
-  resetPassword: async (email: string) => {
+  resetPassword: async (email) => {
     set({ isLoading: true, error: null });
     try {
       // TODO: Implement password reset functionality
       set({ isLoading: false });
     } catch (error) {
       set({
-        error: error instanceof Error ? error.message : 'An error occurred during password reset',
         isLoading: false,
+        error: error instanceof Error ? error.message : 'An error occurred during password reset',
       });
     }
   },
 
-  clearError: () => {
-    set({ error: null });
-  },
+  clearError: () => set({ error: null }),
 }));

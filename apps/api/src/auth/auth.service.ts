@@ -1,34 +1,34 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
-import { Response } from 'express';
-import { db } from '../drizzle/client';
-import { refreshTokens } from '../drizzle/schema';
-import { eq } from 'drizzle-orm';
-import { TRPCError } from '@trpc/server';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { UsersService } from "../users/users.service";
+import { Response } from "express";
+import { db } from "../drizzle/client";
+import { refreshTokens } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
-    private jwtService: JwtService,
+    private jwtService: JwtService
   ) {}
 
   private generateAccessToken(payload: any): string {
     return this.jwtService.sign(payload, {
-      expiresIn: '15m', // Short-lived access token
+      expiresIn: "15m", // Short-lived access token
     });
   }
 
   private generateRefreshToken(payload: any): string {
     return this.jwtService.sign(payload, {
-      expiresIn: '7d', // 7 days
+      expiresIn: "7d", // 7 days
     });
   }
 
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.usersService.findByEmail(email);
-    if (user && await this.usersService.validatePassword(user, password)) {
+    if (user && (await this.usersService.validatePassword(user, password))) {
       const { password, ...result } = user;
       return result;
     }
@@ -37,41 +37,47 @@ export class AuthService {
 
   async login(user: any, response: Response) {
     const payload = { email: user.email, sub: user.id };
-    
+
     // Generate tokens
     const accessToken = this.generateAccessToken(payload);
     const refreshToken = this.generateRefreshToken(payload);
-    
+
     // Store refresh token in database
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
-    
+
     await db.insert(refreshTokens).values({
       token: refreshToken,
       userId: user.id,
       expiresAt,
     });
 
-    // Set cookies
-    response.cookie('accessToken', accessToken, {
+    // Set cookies (keeping for backward compatibility)
+    response.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
-    response.cookie('refreshToken', refreshToken, {
+    response.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
+    // Return tokens along with user data for mobile app
+    // Ignore tokens in web, web is using httponly cookies
     return {
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
+      },
+      tokens: {
+        accessToken,
+        refreshToken,
       },
     };
   }
@@ -80,7 +86,7 @@ export class AuthService {
     try {
       // Verify the refresh token
       const payload = this.jwtService.verify(refreshToken);
-      
+
       // Check if token exists in database
       const [storedToken] = await db
         .select()
@@ -89,8 +95,8 @@ export class AuthService {
 
       if (!storedToken || new Date(storedToken.expiresAt) < new Date()) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Refresh token expired',
+          code: "UNAUTHORIZED",
+          message: "Refresh token expired",
         });
       }
 
@@ -98,8 +104,8 @@ export class AuthService {
       const user = await this.usersService.findOne(payload.sub);
       if (!user) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not found',
+          code: "UNAUTHORIZED",
+          message: "User not found",
         });
       }
 
@@ -116,7 +122,7 @@ export class AuthService {
       // Store new refresh token
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
-      
+
       await db.insert(refreshTokens).values({
         token: newRefreshToken,
         userId: user.id,
@@ -124,50 +130,58 @@ export class AuthService {
       });
 
       // Set new cookies
-      response.cookie('accessToken', accessToken, {
+      response.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         maxAge: 15 * 60 * 1000, // 15 minutes
       });
 
-      response.cookie('refreshToken', newRefreshToken, {
+      response.cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
+      // Refresh tokens, along with user data
+      // Ignore tokens in web, web is using httponly cookies
       return {
         user: {
           id: user.id,
           email: user.email,
           name: user.name,
         },
+        tokens: {
+          accessToken: accessToken,
+          refreshToken: newRefreshToken,
+        },
       };
     } catch (error: unknown) {
-      if (
-        error && 
-        typeof error === 'object' && 
-        'name' in error && 
-        typeof error.name === 'string' && 
-        (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError')
-      ) {
-        throw new UnauthorizedException('Invalid or expired refresh token');
+      if (error instanceof TRPCError) {
+        throw error;
       }
-      throw error;
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Invalid refresh token",
+      });
     }
   }
 
-  async signup(email: string, password: string, name: string, response: Response) {
+  async signup(
+    email: string,
+    password: string,
+    name: string,
+    response: Response
+  ) {
     const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) {
-      throw new UnauthorizedException('Email already exists');
+      throw new UnauthorizedException("Email already exists");
     }
 
     const user = await this.usersService.create(email, password, name);
     const { password: _, ...result } = user;
-    
+
     return this.login(result, response);
   }
 
@@ -181,22 +195,22 @@ export class AuthService {
       }
 
       // Clear cookies regardless of token status
-      response.clearCookie('accessToken', {
+      response.clearCookie("accessToken", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
       });
-      response.clearCookie('refreshToken', {
+      response.clearCookie("refreshToken", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
       });
 
-      return { message: 'Logged out successfully' };
+      return { message: "Logged out successfully" };
     } catch (error) {
       // Even if token deletion fails, we still want to clear cookies
-      response.clearCookie('accessToken');
-      response.clearCookie('refreshToken');
+      response.clearCookie("accessToken");
+      response.clearCookie("refreshToken");
       throw error;
     }
   }

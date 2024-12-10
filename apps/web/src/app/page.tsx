@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4">
+        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-800 to-gray-500 pb-6 pt-8 backdrop-blur-2xl lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4">
           Welcome to&nbsp;
           <code className="font-mono font-bold">Fullstack Monorepo</code>
         </p>
@@ -24,7 +24,7 @@ export default function Home() {
       <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-3 lg:text-left">
         <Link
           href="/web"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100"
+          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-700"
         >
           <h2 className="mb-3 text-2xl font-semibold">
             Web{' '}
@@ -39,7 +39,7 @@ export default function Home() {
 
         <Link
           href="/mobile"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100"
+          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-700"
         >
           <h2 className="mb-3 text-2xl font-semibold">
             Mobile{' '}
@@ -54,7 +54,7 @@ export default function Home() {
 
         <Link
           href="/api"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100"
+          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-700"
         >
           <h2 className="mb-3 text-2xl font-semibold">
             API{' '}

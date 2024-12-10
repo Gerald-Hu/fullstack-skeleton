@@ -15,9 +15,9 @@ export const RefreshTokenButton = () => {
     }
   };
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  // if (!isAuthenticated) {
+  //   return null;
+  // }
 
   return (
     <Button 

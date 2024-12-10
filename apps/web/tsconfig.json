@@ -7,10 +7,27 @@
     ".next/types/**/*.ts"
   ],
   "compilerOptions": {
+    // "experimentalDecorators": true,
+    // "emitDecoratorMetadata": true,
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./src/*"
+        "./src/*",
+      ],
+      "@utils/*": [
+        "./src/utils/*",
+      ],
+      "@components/*": [
+        "./src/components/*",
+      ],
+      "@hooks/*": [
+        "./src/hooks/*",
+      ],
+      "@store/*": [
+        "./src/store/*",
+      ],
+      "@types/*": [
+        "./src/types/*",
       ]
     },
     "strictNullChecks": true
