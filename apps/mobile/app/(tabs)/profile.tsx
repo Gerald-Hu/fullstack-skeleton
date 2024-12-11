@@ -10,7 +10,7 @@ import { useState } from 'react';
 type Sheet = 'login' | 'signup' | 'forgotPassword' | null;
 
 export default function ProfileScreen() {
-  const { user, accessToken, logout, isAuthenticated } = useStore();
+  const { user, logout, isAuthenticated } = useStore();
   const [activeSheet, setActiveSheet] = useState<Sheet>(null);
 
   if (!isAuthenticated) {

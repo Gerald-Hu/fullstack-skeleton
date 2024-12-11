@@ -21,11 +21,10 @@ export const useStore = create<StoreState>()(
     {
       name: 'app-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      // Only persist certain paths
+      // Only persist non-sensitive data
       partialize: (state) => ({
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
         user: state.user,
+        isAuthenticated: state.isAuthenticated,
       }),
     }
   )

@@ -27,13 +27,18 @@ export class AppContext implements TRPCContext {
   ) {}
 
   async create(opts: ContextOptions): Promise<Record<string, unknown>> {
-    const accessToken = opts.req.cookies['accessToken'];
-    
+    const accessTokenFromCookie = opts.req.cookies['accessToken'];
+    const accessTokenFromHeaderUnextracted = opts.req.headers.authorization;
+    const accessTokenFromHeader = accessTokenFromHeaderUnextracted?.split(' ')[1] === 'null' ? null : accessTokenFromHeaderUnextracted?.split(' ')[1];
+
+    const accessToken = accessTokenFromCookie || accessTokenFromHeader;
+
     if (!accessToken) {
       return {
         req: opts.req,
         res: opts.res,
         auth: { user: null },
+        bearerToken: null,
       };
     }
 
@@ -58,6 +63,7 @@ export class AppContext implements TRPCContext {
         auth: {
           user: userWithoutPassword,
         },
+        bearerToken: accessToken,
       };
     } catch (error: unknown) {
       if (

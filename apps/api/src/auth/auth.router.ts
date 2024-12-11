@@ -15,9 +15,6 @@ export const signupSchema = loginSchema.extend({
   name: z.string().optional(),
 });
 
-export const refreshTokenSchema = z.object({
-  refreshToken: z.string().optional(),
-});
 
 @Injectable()
 @Router({ alias: "auth" })
@@ -76,9 +73,13 @@ export class AuthRouter {
   @Mutation()
   async logout(
     @Ctx()
-    { req, res }: { req: { cookies: { refreshToken: string } }; res: Response }
+    { req, res, bearerToken }: { req: { cookies: { refreshToken: string }, headers: { authorization: string } }; res: Response, bearerToken: string }
   ) {
-    const refreshToken = req.cookies["refreshToken"];
+    const refreshTokenFromCookie = req.cookies["refreshToken"];
+    const refreshTokenFromHeader = bearerToken;
+
+    const refreshToken = refreshTokenFromCookie || refreshTokenFromHeader;
+
     try {
       return await this.authService.logout(refreshToken, res);
     } catch (error) {
@@ -116,14 +117,16 @@ export class AuthRouter {
     }
   }
 
-  @Query({
-    input: refreshTokenSchema.optional(),
-  })
+  @Query(
+    {output: z.object({
+      id: z.string(),
+      email: z.string(),
+      name: z.string().optional(),
+    })}
+  )
   async me(
-    @Input("refreshToken") refreshToken: string | undefined,
     @Ctx() ctx: { auth: { user?: User } | null }
   ) {
-    console.log(refreshToken);
     if (!ctx.auth?.user) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
