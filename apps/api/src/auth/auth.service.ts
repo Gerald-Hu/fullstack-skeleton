@@ -146,6 +146,7 @@ export class AuthService {
 
       // Refresh tokens, along with user data
       // Ignore tokens in web, web is using httponly cookies
+
       return {
         user: {
           id: user.id,

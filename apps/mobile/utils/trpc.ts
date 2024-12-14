@@ -54,11 +54,12 @@ export function withTokenRefresh() {
       try {
         return await originalMethod.apply(this, args);
       } catch (error: any) {
-        // Check if it's a 403 error
+        // Check if it's a 401 error
         if (
-          error?.data?.httpStatus === 403 ||
+          error?.data?.httpStatus === 401 ||
           error?.data?.code === "UNAUTHORIZED"
         ) {
+          
           try {
             // Get refresh token
             const refreshToken = await SecureStore.getItemAsync(
@@ -94,10 +95,9 @@ export function withTokenRefresh() {
             await SecureStore.deleteItemAsync(TOKEN_KEYS.REFRESH_TOKEN);
             await SecureStore.deleteItemAsync(TOKEN_KEYS.ACCESS_TOKEN);
             setBearerToken("");
-            throw new Error("Session expired. Please login again.");
           }
         }
-        // If it's not a 403 error, rethrow
+        // If it's not a 401 error, rethrow
         throw error;
       }
     };

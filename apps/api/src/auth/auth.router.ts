@@ -5,6 +5,7 @@ import { Injectable } from "@nestjs/common";
 import { Response } from "express";
 import { User } from "@/app.context";
 import { TRPCError } from "@trpc/server";
+import type { Context } from "@/app.context";
 
 export const loginSchema = z.object({
   email: z.string().email(),
@@ -92,9 +93,9 @@ export class AuthRouter {
 
   @Mutation()
   async refresh(
-    @Ctx() ctx: { req: { cookies: { refreshToken: string } }; res: Response }
+    @Ctx() ctx: Context
   ) {
-    const refreshToken = ctx.req.cookies.refreshToken;
+    const refreshToken = ctx.req.cookies.refreshToken ?? ctx.bearerToken;
 
     if (!refreshToken) {
       throw new TRPCError({

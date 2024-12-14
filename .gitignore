@@ -26,6 +26,7 @@ web-build/
 .DS_Store
 *.pem
 .env*
+.windsurfrules
 
 # debug
 npm-debug.log*

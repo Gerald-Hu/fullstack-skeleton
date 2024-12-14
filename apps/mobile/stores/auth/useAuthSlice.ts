@@ -22,7 +22,6 @@ export interface AuthActions {
   signup: (name: string, email: string, password: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
-  refresh: () => Promise<void>;
   fetchUser: () => Promise<void>;
 }
 
@@ -89,38 +88,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
     }
   },
 
-  refresh: async () => {
-    try {
-      // Get refresh token from secure storage
-      const refreshToken = await SecureStore.getItemAsync(
-        TOKEN_KEYS.REFRESH_TOKEN
-      );
-      if (!refreshToken) {
-        throw new Error("No refresh token found");
-      }
 
-      const result: { tokens: Tokens } = await trpc.auth.refresh.mutate();
-      // Store new tokens
-      await SecureStore.setItemAsync(
-        TOKEN_KEYS.REFRESH_TOKEN,
-        result.tokens.refreshToken
-      );
-      await SecureStore.setItemAsync(
-        TOKEN_KEYS.ACCESS_TOKEN,
-        result.tokens.accessToken
-      );
-    } catch (error) {
-      // If refresh fails, log the user out
-      await SecureStore.deleteItemAsync(TOKEN_KEYS.REFRESH_TOKEN);
-      await SecureStore.deleteItemAsync(TOKEN_KEYS.ACCESS_TOKEN);
-      set({
-        user: null,
-        isAuthenticated: false,
-      });
-      console.error("Token refresh error:", error);
-      alert("Your session has expired. Please login again.");
-    }
-  },
 
   fetchUser: async () => {
     try {

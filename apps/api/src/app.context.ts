@@ -17,6 +17,7 @@ export interface Context {
   auth: {
     user: User | null;
   };
+  bearerToken?: string
 }
 
 @Injectable()
@@ -46,7 +47,6 @@ export class AppContext implements TRPCContext {
       // Verify access token
       const payload = this.jwtService.verify(accessToken);
       const user = await this.usersService.findOne(payload.sub);
-
       if (!user) {
         throw new TRPCError({
           code: 'UNAUTHORIZED',

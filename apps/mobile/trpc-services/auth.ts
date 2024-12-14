@@ -78,10 +78,10 @@ export class AuthService {
   @withTokenRefresh()
   async fetchUser(): Promise<User> {
     const accessToken = await SecureStore.getItemAsync(TOKEN_KEYS.ACCESS_TOKEN);
-    if (!accessToken) {
-      throw new Error("No access token found");
-    }
-    setBearerToken(accessToken);
+    // if (!accessToken) {
+    //   throw new Error("No access token found");
+    // }
+    setBearerToken(accessToken ?? "");
     return await trpc.auth.me.query();
   }
 
