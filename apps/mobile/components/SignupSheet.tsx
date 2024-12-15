@@ -5,22 +5,20 @@ import { Button } from './Button';
 import { useStore } from '@/stores';
 
 interface SignupSheetProps {
-  onClose: () => void;
+  onSignup: (name: string, email: string, password: string) => void;
   onLoginPress: () => void;
 }
 
-export function SignupSheet({ onClose, onLoginPress }: SignupSheetProps) {
+export function SignupSheet({ onSignup, onLoginPress }: SignupSheetProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const signup = useStore((state) => state.signup);
 
   const handleSignup = async () => {
     try {
       setIsLoading(true);
-      await signup(name, email, password);
-      onClose();
+      onSignup(name, email, password);
     } catch (error) {
       console.error('Signup failed:', error);
     } finally {
@@ -33,12 +31,6 @@ export function SignupSheet({ onClose, onLoginPress }: SignupSheetProps) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <View style={styles.header}>
-        <View style={styles.handle} />
-        <Pressable onPress={onClose} style={styles.closeButton}>
-          <Text>Cancel</Text>
-        </Pressable>
-      </View>
 
       <View style={styles.content}>
         <Text style={styles.title}>Create Account</Text>

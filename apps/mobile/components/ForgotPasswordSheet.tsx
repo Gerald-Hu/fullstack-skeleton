@@ -5,11 +5,11 @@ import { Button } from './Button';
 import { useStore } from '@/stores';
 
 interface ForgotPasswordSheetProps {
-  onClose: () => void;
+  onReset: (email: string) => void;
   onLoginPress: () => void;
 }
 
-export function ForgotPasswordSheet({ onClose, onLoginPress }: ForgotPasswordSheetProps) {
+export function ForgotPasswordSheet({ onReset, onLoginPress }: ForgotPasswordSheetProps) {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
@@ -18,7 +18,7 @@ export function ForgotPasswordSheet({ onClose, onLoginPress }: ForgotPasswordShe
   const handleResetPassword = async () => {
     try {
       setIsLoading(true);
-      await resetPassword(email);
+      onReset(email);
       setIsSent(true);
     } catch (error) {
       console.error('Reset password failed:', error);
@@ -32,13 +32,6 @@ export function ForgotPasswordSheet({ onClose, onLoginPress }: ForgotPasswordShe
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <View style={styles.header}>
-        <View style={styles.handle} />
-        <Pressable onPress={onClose} style={styles.closeButton}>
-          <Text>Cancel</Text>
-        </Pressable>
-      </View>
-
       <View style={styles.content}>
         <Text style={styles.title}>Reset Password</Text>
         

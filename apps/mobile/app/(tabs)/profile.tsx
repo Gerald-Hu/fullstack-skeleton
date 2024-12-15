@@ -1,76 +1,11 @@
 import { View, Modal, Text, ScrollView, TouchableOpacity, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useStore } from "@/stores";
-// import { Text } from "@/components/Themed";
-import { Button } from "@/components/Button";
-import { LoginSheet } from "@/components/LoginSheet";
-import { SignupSheet } from "@/components/SignupSheet";
-import { ForgotPasswordSheet } from "@/components/ForgotPasswordSheet";
-import { useState } from "react";
-
-type Sheet = "login" | "signup" | "forgotPassword" | null;
+import { useStore } from "@/stores";1
 
 export default function ProfileScreen() {
-  const { user, logout, isAuthenticated } = useStore();
-  const [activeSheet, setActiveSheet] = useState<Sheet>(null);
-
-  if (!isAuthenticated) {
-    return (
-      <View className="flex items-center justify-center size-full p-4">
-        <Text className="text-2xl font-bold mb-2">Not Logged In</Text>
-        <Button onPress={() => setActiveSheet("login")} className="mb-5">
-          Login
-        </Button>
-
-        <Modal
-          visible={activeSheet !== null}
-          onRequestClose={() => setActiveSheet(null)}
-          animationType="slide"
-          presentationStyle="pageSheet"
-          statusBarTranslucent
-        >
-          {activeSheet === "login" && (
-            <LoginSheet
-              onClose={() => setActiveSheet(null)}
-              onSignupPress={() => setActiveSheet("signup")}
-              onForgotPasswordPress={() => setActiveSheet("forgotPassword")}
-            />
-          )}
-          {activeSheet === "signup" && (
-            <SignupSheet
-              onClose={() => setActiveSheet(null)}
-              onLoginPress={() => setActiveSheet("login")}
-            />
-          )}
-          {activeSheet === "forgotPassword" && (
-            <ForgotPasswordSheet
-              onClose={() => setActiveSheet(null)}
-              onLoginPress={() => setActiveSheet("login")}
-            />
-          )}
-        </Modal>
-      </View>
-    );
-  }
+  const { user, logout } = useStore();
 
   return (
-    // <View className="flex items-center justify-center size-full p-4">
-    //   <View>
-    //     <Text className="text-2xl font-bold mb-2">Profile</Text>
-    //     <Text className="text-base mb-8">Welcome back!</Text>
-    //   </View>
-
-    //   <View className="w-full gap-2 mb-8 bg-gray-200 p-4">
-    //     <Text>Name: {user?.name}</Text>
-    //     <Text>Email: {user?.email}</Text>
-    //   </View>
-
-    //   <View>
-    //     <Button onPress={logout} variant="secondary" className="mb-5">
-    //       Logout
-    //     </Button>
-    //   </View>
-    // </View>
     <ScrollView className="flex-1 bg-gray-50 pt-10">
       {/* Header Section */}
       <View className="items-center pt-12 pb-8">

@@ -1,26 +1,23 @@
 import React, { useState } from 'react';
 import { StyleSheet, TextInput, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
-import { View, Text } from './Themed';
+import { View, Text } from '@components/Themed';
 import { Button } from './Button';
-import { useStore } from '@/stores';
 
 interface LoginSheetProps {
-  onClose: () => void;
+  onLogin: (email: string, password: string) => void;
   onSignupPress: () => void;
   onForgotPasswordPress: () => void;
 }
 
-export function LoginSheet({ onClose, onSignupPress, onForgotPasswordPress }: LoginSheetProps) {
+export function LoginSheet({ onLogin, onSignupPress, onForgotPasswordPress }: LoginSheetProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const login = useStore((state) => state.login);
 
   const handleLogin = async () => {
     try {
       setIsLoading(true);
-      await login(email, password);
-      onClose();
+      onLogin(email, password);
     } catch (error) {
       console.error('Login failed:', error);
     } finally {
@@ -30,21 +27,15 @@ export function LoginSheet({ onClose, onSignupPress, onForgotPasswordPress }: Lo
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
       style={styles.container}
     >
-      <View style={styles.header}>
-        <View style={styles.handle} />
-        <Pressable onPress={onClose} style={styles.closeButton}>
-          <Text>Cancel</Text>
-        </Pressable>
-      </View>
 
-      <View style={styles.content}>
-        <Text style={styles.title}>Welcome Back</Text>
+      <View className='flex-1 px-4 mb-8'>
+        <Text className='text-3xl font-bold mb-2 items-center text-center light:text-gray-900 dark:text-red-600'>Welcome Back</Text>
         
-        <View style={styles.form}>
-          <View style={styles.inputContainer}>
+        <View className='gap-4'>
+          <View className='gap-2'>
             <Text>Email</Text>
             <TextInput
               style={styles.input}
@@ -95,21 +86,8 @@ export function LoginSheet({ onClose, onSignupPress, onForgotPasswordPress }: Lo
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
   },
-  header: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    alignItems: 'center',
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#ccc',
-    borderRadius: 2,
-    marginBottom: 10,
-  },
+
   closeButton: {
     position: 'absolute',
     right: 20,

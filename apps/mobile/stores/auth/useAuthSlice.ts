@@ -47,7 +47,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
         throw error;
       }
       console.error("Login error:", error);
-      alert("Authentication failed. Please try again.");
+      // alert("Authentication failed. Please try again.");
     }
   },
 
@@ -66,7 +66,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
         throw error;
       }
       console.error("Signup error:", error);
-      alert("Registration failed. Please try again.");
+      // alert("Registration failed. Please try again.");
     }
   },
 
@@ -84,7 +84,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
       });
     } catch (error) {
       console.error("Logout error:", error);
-      alert("Error during logout. Your session has been cleared locally.");
+      // alert("Error during logout. Your session has been cleared locally.");
     }
   },
 
@@ -99,7 +99,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
       await SecureStore.deleteItemAsync(TOKEN_KEYS.ACCESS_TOKEN);
       set({ user: null, isAuthenticated: false });
       console.error("User fetch error:", error);
-      alert("Your session has expired. Please login again.");
+      // alert("Your session has expired. Please login again.");
     }
   },
 });
