@@ -10,6 +10,29 @@ const appRouter = t.router({
     login: publicProcedure.input(z.object({
       email: z.string().email(),
       password: z.string().min(6),
+    })).output(z.object({
+      user: z.object({
+        id: z.string(),
+        email: z.string(),
+        name: z.string().optional(),
+      }),
+      tokens: z.object({
+        accessToken: z.string(),
+        refreshToken: z.string(),
+      }),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    loginWithGoogle: publicProcedure.input(z.object({
+      credential: z.string(),
+    })).output(z.object({
+      user: z.object({
+        id: z.string(),
+        email: z.string(),
+        name: z.string().optional(),
+      }),
+      tokens: z.object({
+        accessToken: z.string(),
+        refreshToken: z.string(),
+      }),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     signup: publicProcedure.input(z.object({
       email: z.string().email(),

@@ -1,9 +1,19 @@
-'use client';
+"use client";
 
-import { Dialog, DialogContent, DialogTitle, TextField, Button, Stack, Typography, Link } from '@mui/material';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthSlice } from '@/store/slices/useAuthSlice';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Button,
+  Stack,
+  Typography,
+  Link,
+} from "@mui/material";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthSlice } from "@/store/slices/useAuthSlice";
+import { GoogleLogin } from "@react-oauth/google";
 
 interface AuthDialogProps {
   open: boolean;
@@ -12,37 +22,37 @@ interface AuthDialogProps {
 
 export function AuthDialog({ open, onClose }: AuthDialogProps) {
   const router = useRouter();
-  const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const { login, signup, resetPassword, isLoading, error } = useAuthSlice();
+  const { login, signup, resetPassword, isLoading, error, loginWithGoogle } = useAuthSlice();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (mode === 'signup' && password !== confirmPassword) {
+    if (mode === "signup" && password !== confirmPassword) {
       return;
     }
 
     try {
       switch (mode) {
-        case 'login':
+        case "login":
           await login(email, password);
           if (!error) {
             onClose();
-            router.push('/dashboard');
+            router.push("/dashboard");
           }
           break;
-        case 'signup':
+        case "signup":
           await signup(email, password);
           if (!error) {
             onClose();
-            router.push('/dashboard');
+            router.push("/dashboard");
           }
           break;
-        case 'reset':
+        case "reset":
           await resetPassword(email);
           if (!error) {
             onClose();
@@ -56,22 +66,34 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
 
   const handleModeChange = (newMode: typeof mode) => {
     setMode(newMode);
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+  };
+
+  const handleGoogleLogin = async (credential: string) => {
+    try {
+      await loginWithGoogle(credential);
+      if (!error) {
+        onClose();
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      // Error is handled by the store
+    }
   };
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onClose={() => !isLoading && onClose()}
-      maxWidth="xs" 
+      maxWidth="xs"
       fullWidth
     >
       <DialogTitle>
-        {mode === 'login' && 'Sign In'}
-        {mode === 'signup' && 'Create Account'}
-        {mode === 'reset' && 'Reset Password'}
+        {mode === "login" && "Sign In"}
+        {mode === "signup" && "Create Account"}
+        {mode === "reset" && "Reset Password"}
       </DialogTitle>
       <DialogContent>
         <form onSubmit={handleSubmit}>
@@ -93,7 +115,7 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
               disabled={isLoading}
             />
 
-            {mode !== 'reset' && (
+            {mode !== "reset" && (
               <TextField
                 label="Password"
                 type="password"
@@ -105,7 +127,7 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
               />
             )}
 
-            {mode === 'signup' && (
+            {mode === "signup" && (
               <TextField
                 label="Confirm Password"
                 type="password"
@@ -123,21 +145,23 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
               fullWidth
               disabled={isLoading}
             >
-              {isLoading ? 'Please wait...' : (
-                mode === 'login' ? 'Sign In' :
-                mode === 'signup' ? 'Create Account' :
-                'Reset Password'
-              )}
+              {isLoading
+                ? "Please wait..."
+                : mode === "login"
+                  ? "Sign In"
+                  : mode === "signup"
+                    ? "Create Account"
+                    : "Reset Password"}
             </Button>
 
             <Stack direction="row" spacing={1} justifyContent="center">
-              {mode === 'login' && (
+              {mode === "login" && (
                 <>
                   <Link
                     component="button"
                     variant="body2"
-                    onClick={() => !isLoading && handleModeChange('signup')}
-                    sx={{ pointerEvents: isLoading ? 'none' : 'auto' }}
+                    onClick={() => !isLoading && handleModeChange("signup")}
+                    sx={{ pointerEvents: isLoading ? "none" : "auto" }}
                   >
                     Create account
                   </Link>
@@ -145,19 +169,19 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
                   <Link
                     component="button"
                     variant="body2"
-                    onClick={() => !isLoading && handleModeChange('reset')}
-                    sx={{ pointerEvents: isLoading ? 'none' : 'auto' }}
+                    onClick={() => !isLoading && handleModeChange("reset")}
+                    sx={{ pointerEvents: isLoading ? "none" : "auto" }}
                   >
                     Forgot password?
                   </Link>
                 </>
               )}
-              {mode !== 'login' && (
+              {mode !== "login" && (
                 <Link
                   component="button"
                   variant="body2"
-                  onClick={() => !isLoading && handleModeChange('login')}
-                  sx={{ pointerEvents: isLoading ? 'none' : 'auto' }}
+                  onClick={() => !isLoading && handleModeChange("login")}
+                  sx={{ pointerEvents: isLoading ? "none" : "auto" }}
                 >
                   Back to sign in
                 </Link>
@@ -165,6 +189,17 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
             </Stack>
           </Stack>
         </form>
+
+        <div className="mt-4 w-full flex items-center justify-center">
+          <GoogleLogin
+            onSuccess={(credentialResponse) => {
+              handleGoogleLogin(credentialResponse.credential ?? "");
+            }}
+            onError={() => {
+              console.log("Login Failed");
+            }}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

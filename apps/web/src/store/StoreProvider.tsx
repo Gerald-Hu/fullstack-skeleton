@@ -26,11 +26,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // Check authentication status when app loads
   useEffect(() => {
-    try {
-      storeRef.current.auth.fetchUser();
-    } catch (error) {
-      console.log(error);
+    async function checkAuth() {
+      try {
+        await storeRef.current.auth.fetchUser();
+      } catch (error) {
+        console.log(error);
+      }
     }
+    checkAuth();
   }, []);
 
   return (

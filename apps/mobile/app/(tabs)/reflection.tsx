@@ -63,7 +63,7 @@ export default function ReflectionScreen() {
 };
 
 // Mood Button Component
-const MoodButton = ({ icon, color }) => (
+const MoodButton = ({ icon, color }: {icon: keyof typeof Feather.glyphMap; color: string}) => (
   <TouchableOpacity 
     className="h-12 w-12 rounded-full items-center justify-center"
     style={{ backgroundColor: color }}

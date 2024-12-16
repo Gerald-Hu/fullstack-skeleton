@@ -1,14 +1,19 @@
-import { create } from 'zustand';
-import { trpc } from '@/utils/trpc';
-import { loginSchema, signupSchema } from '../../../../api/src/auth/auth.router';
-import { withRefresh } from '@/utils/token-refresh';
-import { z } from 'zod';
+import { create } from "zustand";
+import { trpc } from "@/utils/trpc";
+import {
+  loginSchema,
+  signupSchema,
+} from "../../../../api/src/auth/auth.router";
+import { withRefresh } from "@/utils/token-refresh";
+import { z } from "zod";
 
-export const userSchema = z.object({
-  id: z.string(),
-  email: z.string().email(),
-  name: z.string().optional(),
-}).strict();
+export const userSchema = z
+  .object({
+    id: z.string(),
+    email: z.string().email(),
+    name: z.string().optional(),
+  })
+  .strict();
 
 export type User = z.infer<typeof userSchema>;
 
@@ -21,6 +26,7 @@ interface AuthState {
 
 interface AuthActions {
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   signup: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -41,7 +47,7 @@ export const useAuthSlice = create<AuthSlice>((set) => ({
   login: async (email, password) => {
     set({ isLoading: true, error: null });
     try {
-      await trpc.auth.login.mutate({ email, password });
+      void (await trpc.auth.login.mutate({ email, password }));
       const user = await trpc.auth.me.query();
       set({
         user: userSchema.parse(user),
@@ -53,7 +59,33 @@ export const useAuthSlice = create<AuthSlice>((set) => ({
         user: null,
         isAuthenticated: false,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'An error occurred during login',
+        error:
+          error instanceof Error
+            ? error.message
+            : "An error occurred during login",
+      });
+    }
+  },
+
+  loginWithGoogle: async (credential: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { user } = await trpc.auth.loginWithGoogle.mutate({ credential });
+      console.log(user);
+      set({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "An error occurred during login",
       });
     }
   },
@@ -73,7 +105,10 @@ export const useAuthSlice = create<AuthSlice>((set) => ({
         user: null,
         isAuthenticated: false,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'An error occurred during signup',
+        error:
+          error instanceof Error
+            ? error.message
+            : "An error occurred during signup",
       });
     }
   },
@@ -89,7 +124,10 @@ export const useAuthSlice = create<AuthSlice>((set) => ({
       });
     } catch (error) {
       set({
-        error: error instanceof Error ? error.message : 'An error occurred during logout',
+        error:
+          error instanceof Error
+            ? error.message
+            : "An error occurred during logout",
         isLoading: false,
       });
     }
@@ -130,7 +168,10 @@ export const useAuthSlice = create<AuthSlice>((set) => ({
     } catch (error) {
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : 'An error occurred during password reset',
+        error:
+          error instanceof Error
+            ? error.message
+            : "An error occurred during password reset",
       });
     }
   },

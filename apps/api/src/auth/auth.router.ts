@@ -1,6 +1,6 @@
 import { Router, Mutation, Query, Input, Ctx } from "nestjs-trpc";
 import { z } from "zod";
-import { AuthService } from "./auth.service";
+import { AuthService, loginResult } from "./auth.service";
 import { Injectable } from "@nestjs/common";
 import { Response } from "express";
 import { User } from "@/app.context";
@@ -16,7 +16,6 @@ export const signupSchema = loginSchema.extend({
   name: z.string().optional(),
 });
 
-
 @Injectable()
 @Router({ alias: "auth" })
 export class AuthRouter {
@@ -24,10 +23,11 @@ export class AuthRouter {
 
   @Mutation({
     input: loginSchema,
+    output: loginResult,
   })
   async login(
     @Input() input: z.infer<typeof loginSchema>,
-    @Ctx() ctx: { res: Response }
+    @Ctx() ctx: Context
   ) {
     const user = await this.authService.validateUser(
       input.email,
@@ -44,11 +44,46 @@ export class AuthRouter {
   }
 
   @Mutation({
+    input: z.object({
+      credential: z.string(),
+    }),
+    output: loginResult,
+  })
+  async loginWithGoogle(
+    @Input("credential") credential: string,
+    @Ctx() ctx: Context
+  ) {
+    const { user, tokens } = await this.authService.loginWithGoogle(credential);
+
+    ctx.res.cookie("accessToken", tokens.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
+    // Set refresh token cookie
+    ctx.res.cookie("refreshToken", tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return {
+      user,
+      tokens,
+    };
+  }
+
+  @Mutation({
     input: signupSchema,
   })
   async signup(
     @Input() input: z.infer<typeof signupSchema>,
-    @Ctx() ctx: { res: Response }
+    @Ctx() ctx: Context
   ) {
     try {
       return await this.authService.signup(
@@ -74,7 +109,7 @@ export class AuthRouter {
   @Mutation()
   async logout(
     @Ctx()
-    { req, res, bearerToken }: { req: { cookies: { refreshToken: string }, headers: { authorization: string } }; res: Response, bearerToken: string }
+    { req, res, bearerToken }: Context
   ) {
     const refreshTokenFromCookie = req.cookies["refreshToken"];
     const refreshTokenFromHeader = bearerToken;
@@ -126,7 +161,7 @@ export class AuthRouter {
     })}
   )
   async me(
-    @Ctx() ctx: { auth: { user?: User } | null }
+    @Ctx() ctx: Context
   ) {
     if (!ctx.auth?.user) {
       throw new TRPCError({

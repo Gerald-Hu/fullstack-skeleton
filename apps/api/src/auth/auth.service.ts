@@ -3,9 +3,26 @@ import { JwtService } from "@nestjs/jwt";
 import { UsersService } from "../users/users.service";
 import { Response } from "express";
 import { db } from "../drizzle/client";
-import { refreshTokens } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { refreshTokens, users } from "../drizzle/schema";
+import { OAuth2Client } from "google-auth-library";
+import { eq, or } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+
+const GOOGLE_CLIENT_ID = "78084335849-pkin15ect4lf90evbasf48q93jgqo9at.apps.googleusercontent.com";
+const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+export const loginResult = z.object({
+  user: z.object({
+    id: z.string(),
+    email: z.string(),
+    name: z.string().optional(),
+  }),
+  tokens: z.object({
+    accessToken: z.string(),
+    refreshToken: z.string(),
+  }),
+});
 
 @Injectable()
 export class AuthService {
@@ -26,6 +43,13 @@ export class AuthService {
     });
   }
 
+  private async generateTokens(user: any) {
+    const payload = { email: user.email, sub: user.id };
+    const accessToken = this.generateAccessToken(payload);
+    const refreshToken = this.generateRefreshToken(payload);
+    return { accessToken, refreshToken };
+  }
+
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.usersService.findByEmail(email);
     if (user && (await this.usersService.validatePassword(user, password))) {
@@ -39,8 +63,7 @@ export class AuthService {
     const payload = { email: user.email, sub: user.id };
 
     // Generate tokens
-    const accessToken = this.generateAccessToken(payload);
-    const refreshToken = this.generateRefreshToken(payload);
+    const { accessToken, refreshToken } = await this.generateTokens(user);
 
     // Store refresh token in database
     const expiresAt = new Date();
@@ -80,6 +103,90 @@ export class AuthService {
         refreshToken,
       },
     };
+  }
+
+  async loginWithGoogle(credential: string) {
+    try {
+      // Verify the Google token
+      const ticket = await client.verifyIdToken({
+        idToken: credential,
+        audience: GOOGLE_CLIENT_ID,
+      });
+
+      const payload = ticket.getPayload();
+      if (!payload || !payload.email) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid Google credentials",
+        });
+      }
+
+      // Check if user exists
+      let user = await db.query.users.findFirst({
+        where: or(
+          eq(users.email, payload.email),
+          eq(users.googleId, payload.sub)
+        ),
+      });
+
+      if (!user) {
+        // Create new user if doesn't exist
+        user = await db
+          .insert(users)
+          .values({
+            email: payload.email,
+            name: payload.name || payload.email.split("@")[0],
+            googleId: payload.sub,
+            emailVerified: payload.email_verified || false,
+            image: payload.picture || null,
+          })
+          .returning()
+          .then((res) => res[0]);
+      } else if (!user.googleId) {
+        // Link Google account to existing email account
+        user = await db
+          .update(users)
+          .set({
+            googleId: payload.sub,
+            emailVerified: payload.email_verified || user.emailVerified,
+            image: payload.picture || user.image,
+          })
+          .where(eq(users.id, user.id))
+          .returning()
+          .then((res) => res[0]);
+      }
+
+      // Generate tokens
+      const { accessToken, refreshToken } = await this.generateTokens(user);
+
+      if (user == null){
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to authenticate with Google",
+        });
+      }
+
+      // Store refresh token
+      await db.insert(refreshTokens).values({
+        token: refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      });
+
+      return {
+        user,
+        tokens: {
+          accessToken,
+          refreshToken,
+        },
+      };
+    } catch (error) {
+      console.error("Google login error:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to authenticate with Google",
+      });
+    }
   }
 
   async refresh(refreshToken: string, response: Response) {
@@ -214,5 +321,13 @@ export class AuthService {
       response.clearCookie("refreshToken");
       throw error;
     }
+  }
+
+  me(ctx: { id: string; email: string; name?: string }) {
+    return {
+      id: ctx.id,
+      email: ctx.email,
+      name: ctx.name,
+    };
   }
 }

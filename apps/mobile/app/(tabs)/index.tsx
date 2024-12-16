@@ -109,7 +109,7 @@ export default function HomeScreen() {
 };
 
 // Task Item Component
-const TaskItem = ({ title, duration }) => (
+const TaskItem = ({ title, duration }: { title: string; duration: string }) => (
   <View className="bg-white rounded-2xl p-4 flex-row items-center">
     <TouchableOpacity className="h-6 w-6 rounded-full border-2 border-green-500 mr-4" />
     <View>

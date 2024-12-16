@@ -34,6 +34,7 @@
     "drizzle-kit": "^0.29.1",
     "drizzle-orm": "^0.37.0",
     "expo-secure-store": "^14.0.0",
+    "google-auth-library": "^9.15.0",
     "nestjs-trpc": "^1.6.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
