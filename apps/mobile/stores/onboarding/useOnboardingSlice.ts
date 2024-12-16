@@ -10,6 +10,7 @@ export interface OnboardingState {
 export interface OnboardingActions {
   completeOnboarding: () => Promise<void>;
   checkOnboardingStatus: () => Promise<void>;
+  resetOnboarding: () => Promise<void>;
 }
 
 export type OnboardingSlice = OnboardingState & OnboardingActions;
@@ -26,5 +27,10 @@ export const createOnboardingSlice: StateCreator<OnboardingSlice> = (set) => ({
   checkOnboardingStatus: async () => {
     const status = await AsyncStorage.getItem(ONBOARDING_KEY);
     set({ hasCompletedOnboarding: status === 'true' });
+  },
+
+  resetOnboarding: async () => {
+    await AsyncStorage.removeItem(ONBOARDING_KEY);
+    set({ hasCompletedOnboarding: false });
   },
 });

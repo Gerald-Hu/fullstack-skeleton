@@ -98,7 +98,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
       // If fetch fails, log the user out
       await SecureStore.deleteItemAsync(TOKEN_KEYS.ACCESS_TOKEN);
       set({ user: null, isAuthenticated: false });
-      console.error("User fetch error:", error);
+      // console.error("User fetch error:", error);
       // alert("Your session has expired. Please login again.");
     }
   },

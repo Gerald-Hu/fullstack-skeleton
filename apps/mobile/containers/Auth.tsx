@@ -6,6 +6,8 @@ import { useState, useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStore } from "@/stores";
 import { OnboardingScreen } from "@/components/OnboardingScreen";
+import { Pressable, Text } from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 export function Auth() {
   const insets = useSafeAreaInsets();
@@ -16,7 +18,8 @@ export function Auth() {
     resetPassword,
     hasCompletedOnboarding,
     completeOnboarding,
-    checkOnboardingStatus 
+    checkOnboardingStatus,
+    resetOnboarding
   } = useStore();
 
   useEffect(() => {
@@ -47,7 +50,7 @@ export function Auth() {
     resetPassword(email);
   }
 
-  if (Math.random() > 0.5) {
+  if (!hasCompletedOnboarding) {
     return <OnboardingScreen onComplete={completeOnboarding} />;
   }
 
@@ -56,12 +59,20 @@ export function Auth() {
       className="justify-center flex-1"
       style={{ 
         paddingTop: insets.top,
-        height: '100%'
+        height: '100%',
       }}
     >
       { mode === "login" && <LoginSheet onLogin={loginUser} onSignupPress={() => setToSignup()} onForgotPasswordPress={() => setToReset()} />}
       { mode === "signup" && <SignupSheet onSignup={signupUser} onLoginPress={() => setToLogin()} />}
       { mode === "reset" && <ForgotPasswordSheet onReset={resetPasswordUser} onLoginPress={() => setToLogin()} />}
+      
+      <Pressable 
+        onPress={resetOnboarding}
+        className="absolute bottom-8 right-4 flex-row items-center bg-blue-100 rounded-full px-4 py-2"
+      >
+        <Feather name="refresh-ccw" size={16} color="white" className="mr-2" />
+        <Text className="text-white font-medium">Watch Tutorial</Text>
+      </Pressable>
     </View>
   );
 }
