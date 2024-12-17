@@ -28,6 +28,7 @@ web-build/
 .env*
 .windsurfrules
 ios
+android
 
 # debug
 npm-debug.log*

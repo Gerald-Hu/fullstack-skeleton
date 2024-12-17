@@ -9,8 +9,13 @@ import { eq, or } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-const GOOGLE_CLIENT_ID = "78084335849-pkin15ect4lf90evbasf48q93jgqo9at.apps.googleusercontent.com";
-const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+const GOOGLE_CLIENT_ID_WEB =
+  "78084335849-pkin15ect4lf90evbasf48q93jgqo9at.apps.googleusercontent.com";
+const clientWeb = new OAuth2Client(GOOGLE_CLIENT_ID_WEB);
+
+const Google_Client_ID_IOS =
+  "78084335849-8cugvr23ba3ubh7354sm93hued5hc199.apps.googleusercontent.com";
+const clientIOS = new OAuth2Client(Google_Client_ID_IOS);
 
 export const loginResult = z.object({
   user: z.object({
@@ -108,10 +113,18 @@ export class AuthService {
   async loginWithGoogle(credential: string) {
     try {
       // Verify the Google token
-      const ticket = await client.verifyIdToken({
-        idToken: credential,
-        audience: GOOGLE_CLIENT_ID,
-      });
+      let ticket;
+      try {
+        ticket = await clientWeb.verifyIdToken({
+          idToken: credential,
+          audience: GOOGLE_CLIENT_ID_WEB,
+        });
+      } catch (err) {
+        ticket = await clientIOS.verifyIdToken({
+          idToken: credential,
+          audience: Google_Client_ID_IOS,
+        });
+      }
 
       const payload = ticket.getPayload();
       if (!payload || !payload.email) {
@@ -159,7 +172,7 @@ export class AuthService {
       // Generate tokens
       const { accessToken, refreshToken } = await this.generateTokens(user);
 
-      if (user == null){
+      if (user == null) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to authenticate with Google",
@@ -181,6 +194,7 @@ export class AuthService {
         },
       };
     } catch (error) {
+      console.log(3);
       console.error("Google login error:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

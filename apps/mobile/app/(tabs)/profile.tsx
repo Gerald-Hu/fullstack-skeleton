@@ -82,10 +82,10 @@ export default function ProfileScreen() {
           <Feather name="chevron-right" size={20} color="#666" />
         </TouchableOpacity>
 
-        <TouchableOpacity className="bg-white p-4 rounded-xl flex-row justify-between items-center">
+        <TouchableOpacity className="bg-white p-4 rounded-xl flex-row justify-between items-center" onPress={logout}>
           <View className="flex-row items-center">
             <Feather name="log-out" size={20} color="#FF4444" />
-            <Pressable onPress={logout}>
+            <Pressable>
             <Text className="text-red-500 ml-3">Log Out</Text>
             </Pressable>
           </View>

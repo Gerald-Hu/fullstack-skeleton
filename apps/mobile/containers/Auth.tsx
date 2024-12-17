@@ -14,6 +14,7 @@ export function Auth() {
   const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
   const { 
     login, 
+    loginWithGoogle,
     signup, 
     resetPassword,
     hasCompletedOnboarding,
@@ -42,6 +43,10 @@ export function Auth() {
     login(email, password);
   }
 
+  function handleLoginWithGoogle(idToken: string) {
+    loginWithGoogle(idToken);
+  }
+
   function signupUser(name: string, email: string, password: string) {
     signup(name, email, password);
   }
@@ -62,7 +67,7 @@ export function Auth() {
         height: '100%',
       }}
     >
-      { mode === "login" && <LoginSheet onLogin={loginUser} onSignupPress={() => setToSignup()} onForgotPasswordPress={() => setToReset()} />}
+      { mode === "login" && <LoginSheet onLoginWithGoogle={handleLoginWithGoogle} onLogin={loginUser} onSignupPress={() => setToSignup()} onForgotPasswordPress={() => setToReset()} />}
       { mode === "signup" && <SignupSheet onSignup={signupUser} onLoginPress={() => setToLogin()} />}
       { mode === "reset" && <ForgotPasswordSheet onReset={resetPasswordUser} onLoginPress={() => setToLogin()} />}
       

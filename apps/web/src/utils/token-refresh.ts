@@ -34,13 +34,3 @@ export const withRefresh = <T extends (...args: any[]) => Promise<any>>(
     }
   } as T;
 };
-
-// Example usage with function:
-/*
-const myFunction = withRefresh(
-  async () => {
-    return await trpc.someEndpoint.query();
-  },
-  'myFunction'
-);
-*/

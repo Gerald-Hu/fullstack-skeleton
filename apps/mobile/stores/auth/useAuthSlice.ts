@@ -19,6 +19,7 @@ export interface AuthState {
 
 export interface AuthActions {
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -47,6 +48,25 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
         throw error;
       }
       console.error("Login error:", error);
+      // alert("Authentication failed. Please try again.");
+    }
+  },
+
+  loginWithGoogle: async (idToken: string) => {
+    try {
+      const result = await container
+        .resolve(AuthService)
+        .loginWithGoogle(idToken);
+        
+      set({
+        isAuthenticated: true,
+        user: { ...result.user },
+      });
+    } catch (error) {
+      if (error instanceof SecureStorageError) {
+        throw error;
+      }
+      console.error("Login with Google error:", error);
       // alert("Authentication failed. Please try again.");
     }
   },

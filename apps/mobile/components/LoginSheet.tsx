@@ -5,17 +5,20 @@ import { Button } from './Button';
 import {
   GoogleSignin,
   GoogleSigninButton,
+  isSuccessResponse,
+  isErrorWithCode,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 
 
 interface LoginSheetProps {
   onLogin: (email: string, password: string) => void;
+  onLoginWithGoogle: (credential: string) => void;
   onSignupPress: () => void;
   onForgotPasswordPress: () => void;
 }
 
-export function LoginSheet({ onLogin, onSignupPress, onForgotPasswordPress }: LoginSheetProps) {
+export function LoginSheet({ onLogin, onLoginWithGoogle, onSignupPress, onForgotPasswordPress }: LoginSheetProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -34,10 +37,37 @@ export function LoginSheet({ onLogin, onSignupPress, onForgotPasswordPress }: Lo
 
   const handleGoogleLogin = async () => {
     console.log('handleGoogleLogin');
+    try {
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      if (isSuccessResponse(response)) {
+        onLoginWithGoogle(response.data.idToken ?? "");
+      } else {
+        // sign in was cancelled by user
+      }
+    } catch (error) {
+      if (isErrorWithCode(error)) {
+        switch (error.code) {
+          case statusCodes.IN_PROGRESS:
+            // operation (eg. sign in) already in progress
+            break;
+          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+            // Android only, play services not available or outdated
+            break;
+          default:
+          // some other error happened
+        }
+      } else {
+        // an error that's not related to google sign in occurred
+      }
+    }
+  
   };
 
   useEffect(() => {
-    GoogleSignin.configure();
+    GoogleSignin.configure({
+      iosClientId: '78084335849-8cugvr23ba3ubh7354sm93hued5hc199.apps.googleusercontent.com'
+    });
   }, []);
 
   return (
