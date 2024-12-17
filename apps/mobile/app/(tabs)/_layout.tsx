@@ -28,12 +28,11 @@ export default function TabLayout() {
       }}>
 
       <Tabs.Screen
-        name="index"
+        name="(dashboard)"
         options={{
           title: 'Dashboard',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.pie.fill" color={color} />,
         }}
-        
       />
       <Tabs.Screen
         name="reflection"

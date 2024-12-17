@@ -1,6 +1,6 @@
 import { View, Modal, Text, ScrollView, TouchableOpacity, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useStore } from "@/stores";1
+import { useStore } from "@/stores";
 
 export default function ProfileScreen() {
   const { user, logout } = useStore();
@@ -86,7 +86,7 @@ export default function ProfileScreen() {
           <View className="flex-row items-center">
             <Feather name="log-out" size={20} color="#FF4444" />
             <Pressable>
-            <Text className="text-red-500 ml-3">Log Out</Text>
+              <Text className="text-red-500 ml-3">Log Out</Text>
             </Pressable>
           </View>
         </TouchableOpacity>
