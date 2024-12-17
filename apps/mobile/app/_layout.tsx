@@ -15,12 +15,10 @@ import "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../global.css";
 import { Animated } from "react-native";
+import { ActivityIndicator } from "react-native";
+import { View } from "@components/Themed";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { View, Text } from "@/components/Themed";
-import { LoginSheet } from "@/components/LoginSheet";
-import { SignupSheet } from "@/components/SignupSheet";
-import { ForgotPasswordSheet } from "@/components/ForgotPasswordSheet";
 import { Auth } from "@/containers/Auth";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -30,7 +28,7 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { fetchUser, user, isAuthenticated } = useStore();
 
-  const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
+  const [loading, setLoading] = useState(true);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -52,6 +50,8 @@ export default function RootLayout() {
         await fetchUser();
       } catch (error) {
         console.log(error);
+      } finally {
+        setLoading(false);
       }
     }
     getMe();
@@ -83,10 +83,18 @@ export default function RootLayout() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [isAuthenticated, mode]);
+  }, [isAuthenticated]);
 
   if (!loaded) {
     return null;
+  }
+
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" color="#A8A29E" />
+      </View>
+    );
   }
 
   return (
