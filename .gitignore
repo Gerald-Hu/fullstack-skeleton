@@ -27,6 +27,7 @@ web-build/
 *.pem
 .env*
 .windsurfrules
+ios
 
 # debug
 npm-debug.log*

@@ -8,7 +8,8 @@ export const Navbar = () => {
       <Toolbar>
         <Box sx={{ flexGrow: 1 }} />
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <RefreshTokenButton />
+          {/* Use this to test the token refresh mechanism */}
+          {/* <RefreshTokenButton /> */}
           <AuthButton />
         </Box>
       </Toolbar>

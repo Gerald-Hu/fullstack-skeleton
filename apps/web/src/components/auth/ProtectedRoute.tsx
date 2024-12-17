@@ -13,8 +13,13 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   // Fetch user data on mount
   useEffect(() => {
     const checkAuth = async () => {
+      try {
       await fetchUser();
-      setIsInitialLoading(false);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsInitialLoading(false);
+      }
     };
     checkAuth();
   }, [fetchUser]);
@@ -25,6 +30,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
       router.push('/');
     }
   }, [isInitialLoading, isLoading, isAuthenticated, router]);
+
 
   if (isInitialLoading || isLoading) {
     return (

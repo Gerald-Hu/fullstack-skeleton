@@ -1,3 +1,4 @@
+import * as DevClient from "expo-dev-client";
 import {
   DarkTheme,
   DefaultTheme,
