@@ -66,13 +66,13 @@ export function Auth() {
       { mode === "signup" && <SignupSheet onSignup={signupUser} onLoginPress={() => setToLogin()} />}
       { mode === "reset" && <ForgotPasswordSheet onReset={resetPasswordUser} onLoginPress={() => setToLogin()} />}
       
-      <Pressable 
+      {/* <Pressable 
         onPress={resetOnboarding}
-        className="absolute bottom-8 right-4 flex-row items-center bg-blue-100 rounded-full px-4 py-2"
+        className="absolute bottom-0 flex-row items-center bg-blue-100 rounded-full px-4 py-2 justify-center"
       >
         <Feather name="refresh-ccw" size={16} color="white" className="mr-2" />
         <Text className="text-white font-medium">Watch Tutorial</Text>
-      </Pressable>
+      </Pressable> */}
     </View>
   );
 }

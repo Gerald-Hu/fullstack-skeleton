@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, TextInput, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
 import { View, Text } from '@components/Themed';
 import { Button } from './Button';
+import {
+  GoogleSignin,
+  GoogleSigninButton,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+
 
 interface LoginSheetProps {
   onLogin: (email: string, password: string) => void;
@@ -14,6 +20,7 @@ export function LoginSheet({ onLogin, onSignupPress, onForgotPasswordPress }: Lo
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+
   const handleLogin = async () => {
     try {
       setIsLoading(true);
@@ -24,6 +31,14 @@ export function LoginSheet({ onLogin, onSignupPress, onForgotPasswordPress }: Lo
       setIsLoading(false);
     }
   };
+
+  const handleGoogleLogin = async () => {
+    console.log('handleGoogleLogin');
+  };
+
+  useEffect(() => {
+    GoogleSignin.configure();
+  }, []);
 
   return (
     <KeyboardAvoidingView
@@ -77,6 +92,12 @@ export function LoginSheet({ onLogin, onSignupPress, onForgotPasswordPress }: Lo
               <Text style={styles.link}>Create Account</Text>
             </Pressable>
           </View>
+
+          <Button
+            onPress={handleGoogleLogin}
+          >
+            {isLoading ? 'Logging in...' : 'Google Login'}
+          </Button>
         </View>
       </View>
     </KeyboardAvoidingView>
