@@ -71,7 +71,6 @@ export const useAuthSlice = create<AuthSlice>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const { user } = await trpc.auth.loginWithGoogle.mutate({ credential });
-      console.log(user);
       set({
         user,
         isAuthenticated: true,

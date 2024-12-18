@@ -5,6 +5,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { TRPCModule } from 'nestjs-trpc';
 import { DogsRouter } from "./hi/hi.router"; 
 import { AuthModule } from './auth/auth.module';
+import { TaskModule } from "./task/task.module";
 import { UsersModule } from './users/users.module';
 import { AppContext } from "./app.context";
 
@@ -26,6 +27,7 @@ import { AppContext } from "./app.context";
     }),
     AuthModule,
     UsersModule,
+    TaskModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppContext, DogsRouter],

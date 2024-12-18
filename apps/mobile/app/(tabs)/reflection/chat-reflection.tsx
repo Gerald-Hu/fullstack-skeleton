@@ -147,7 +147,7 @@ export default function ChatReflection() {
               <Feather name="arrow-up" size={16} color="white" />
             </TouchableOpacity>
 
-            <View className='absolute -bottom-1 left-0 h-96 w-screen  bg-gray-50 translate-y-full'/>
+            {/* <View className='absolute -bottom-1 left-0 h-96 w-screen  bg-gray-50 translate-y-full'/> */}
           </View>
         </View>
       </Animated.View>

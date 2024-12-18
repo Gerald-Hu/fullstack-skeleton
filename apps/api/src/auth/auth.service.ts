@@ -194,7 +194,6 @@ export class AuthService {
         },
       };
     } catch (error) {
-      console.log(3);
       console.error("Google login error:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

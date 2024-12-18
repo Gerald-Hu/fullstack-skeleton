@@ -47,6 +47,60 @@ const appRouter = t.router({
       email: z.string(),
       name: z.string().optional(),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
+  task: t.router({
+    getTasks: publicProcedure.output(z.array(z.object({
+      id: z.string(),
+      content: z.string(),
+      status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']),
+      createdAt: z.date(),
+      updatedAt: z.date(),
+      completedAt: z.date().nullable(),
+      userId: z.string(),
+      duration: z.string(),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    createTask: publicProcedure.input(z.object({
+      content: z.string(),
+      duration: z.string(),
+    })).output(z.object({
+      id: z.string(),
+      content: z.string(),
+      status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']),
+      createdAt: z.date(),
+      updatedAt: z.date(),
+      completedAt: z.date().nullable(),
+      userId: z.string(),
+      duration: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    deleteTask: publicProcedure.input(z.object({
+      taskId: z.string().uuid(),
+    })).output(z.object({
+      id: z.string(),
+      content: z.string(),
+      status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']),
+      createdAt: z.date(),
+      updatedAt: z.date(),
+      completedAt: z.date().nullable(),
+      userId: z.string(),
+      duration: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    updateTask: publicProcedure.input(z.object({
+      taskId: z.string(),
+      content: z.object({
+        content: z.string().optional(),
+        duration: z.string().optional(),
+        status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']).optional()
+      })
+    })).output(z.object({
+      id: z.string(),
+      content: z.string(),
+      status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']),
+      createdAt: z.date(),
+      updatedAt: z.date(),
+      completedAt: z.date().nullable(),
+      userId: z.string(),
+      duration: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   })
 });
 export type AppRouter = typeof appRouter;
