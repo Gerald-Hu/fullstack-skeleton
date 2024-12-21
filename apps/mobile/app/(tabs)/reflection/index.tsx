@@ -60,7 +60,7 @@ const ReflectionMainScreen = () => {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="mb-8"
+          className="mb-8 px-1 py-2"
         >
           {moodOptions.map((mood) => (
             <TouchableOpacity

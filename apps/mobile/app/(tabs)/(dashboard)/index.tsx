@@ -1,31 +1,36 @@
-import { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Dimensions } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useEffect, useState, useRef } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  Dimensions,
+  ScrollView,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   useAnimatedScrollHandler,
-  useAnimatedStyle,
   useSharedValue,
-  interpolate,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
-import { useStore } from '@store/index';
-import { TaskModal } from '@components/TaskModal';
-import { Task } from '@/trpc-services/task';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+} from "react-native-reanimated";
+import { useStore } from "@store/index";
+import { TaskModal } from "@components/TaskModal";
+import { Task } from "@/trpc-services/task";
+import { TaskItem } from "@components/TaskItem";
+import { Header } from "@components/ui/Header";
+import * as Haptics from "expo-haptics";
 
 const HEADER_HEIGHT = 60;
 
-// Dashboard Screen
 export default function HomeScreen() {
-
-  const {user, createTask, fetchTasks, tasks, deleteTask, updateTask} = useStore();
+  const { user, createTask, fetchTasks, tasks, deleteTask, updateTask } =
+    useStore();
 
   const [taskModalVisible, setTaskModalVisible] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  
+
   const scrollY = useSharedValue(0);
   const insets = useSafeAreaInsets();
 
@@ -35,27 +40,53 @@ export default function HomeScreen() {
     },
   });
 
-  const headerAnimatedStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      scrollY.value,
-      [0, HEADER_HEIGHT],
-      [0, 1],
-    );
+  const [activeCard, setActiveCard] = useState(0);
+  const { width: SCREEN_WIDTH } = Dimensions.get("window");
+  const CARD_WIDTH = SCREEN_WIDTH - 32; // 32 = padding-x-4 (16 * 2)
 
-    return {
-      opacity,
-    };
-  });
+  const goals = [
+    {
+      id: 1,
+      title: "Learn Piano and Improvise Music for Fun and Relaxation",
+      progress: 35,
+      currentDay: 18,
+      totalDays: 90,
+    },
+    {
+      id: 2,
+      title: "Master React Native Development",
+      progress: 65,
+      currentDay: 45,
+      totalDays: 60,
+    },
+    {
+      id: 3,
+      title: "Read 12 Books This Year",
+      progress: 25,
+      currentDay: 3,
+      totalDays: 12,
+    },
+  ];
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const contentOffset = event.nativeEvent.contentOffset.x;
+    const index = Math.round(contentOffset / CARD_WIDTH);
+    setActiveCard(index);
+  };
 
   const openTaskModal = (task?: Task) => {
+    // Do not vibrate if editing task, as haptic feedback was already given
+    if (task == null) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     setEditingTask(task || null);
     setTaskModalVisible(true);
-  }
+  };
 
   const closeTaskModal = () => {
     setTaskModalVisible(false);
     setEditingTask(null);
-  }
+  };
 
   const handleSaveTask = async (content: string, duration: string) => {
     try {
@@ -67,27 +98,27 @@ export default function HomeScreen() {
       await fetchTasks();
       closeTaskModal();
     } catch (error) {
-      console.error('Error saving task:', error);
+      console.error("Error saving task:", error);
     }
-  }
+  };
 
   const handleDeleteTask = async (taskId: string) => {
     try {
       await deleteTask(taskId);
       await fetchTasks();
     } catch (error) {
-      console.error('Error deleting task:', error);
+      console.error("Error deleting task:", error);
     }
-  }
+  };
 
   const handleCompleteTask = async (taskId: string) => {
     try {
       await updateTask(taskId, { status: "completed" });
       await fetchTasks();
     } catch (error) {
-      console.error('Error completing task:', error);
+      console.error("Error completing task:", error);
     }
-  }
+  };
 
   useEffect(() => {
     fetchTasks();
@@ -95,67 +126,99 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      {/* Task Modal */}
       {taskModalVisible && (
-        <TaskModal 
-          visible={taskModalVisible} 
-          onClose={closeTaskModal} 
+        <TaskModal
+          visible={taskModalVisible}
+          onClose={closeTaskModal}
           onSave={handleSaveTask}
           initialTask={editingTask || undefined}
         />
       )}
-      
-      {/* Animated Header */}
-      <Animated.View 
-        style={[headerAnimatedStyle]} 
-        className="absolute top-0 left-0 right-0 z-10"
-        pointerEvents="box-none"
-      >
-        <BlurView 
-          intensity={30}
-          tint="light"
-          className="w-full overflow-hidden border-b border-b-gray-800"
-          style={{ paddingTop: insets.top, backgroundColor: 'rgba(255, 255, 255, 0.5)' }}
-        >
-          <View className="h-14 justify-center px-6">
-            <Text className="text-center text-xl font-semibold text-gray-800">Dashboard</Text>
-          </View>
-        </BlurView>
-      </Animated.View>
 
-      {/* Scrollable Content */}
+      <Header title="Plans" scrollY={scrollY} headerHeight={HEADER_HEIGHT} />
+
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
-        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1 }}
       >
-        {/* Header */}
+        {/* Greeting */}
         <View className="p-6" style={{ paddingTop: insets.top + 24 }}>
           <Text className="text-gray-500">Good morning,</Text>
-          <Text className="text-2xl font-semibold text-gray-800">{user?.name?.split(" ")[0]}</Text>
+          <Text className="text-2xl font-semibold text-gray-800">
+            {user?.name?.split(" ")[0]}
+          </Text>
         </View>
 
-        {/* Main Goal Card */}
-        <View className="mx-4 bg-white rounded-3xl p-6 shadow-sm">
-          <View className="flex-row items-center">
-            {/* Progress Circle - Using border for circle */}
-            <View className="h-20 w-20 rounded-full border-4 border-gray-100 items-center justify-center">
-              <View className="h-20 w-20 rounded-full border-4 border-green-500 absolute" style={{ borderTopColor: 'transparent', transform: [{ rotate: '-45deg' }] }} />
-              <Text className="text-lg font-semibold">35%</Text>
+        {/* Main Goal Cards */}
+        <View>
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            decelerationRate="fast"
+            snapToInterval={CARD_WIDTH}
+            contentContainerStyle={{ paddingHorizontal: 16 }}
+          >
+            {goals.map((goal) => (
+              <View
+                key={goal.id}
+                style={{ width: CARD_WIDTH }}
+                className="px-2 py-2"
+              >
+                <View className="w-full bg-white rounded-3xl p-6 shadow-sm">
+                  <View className="flex-row items-center">
+                    {/* Progress Circle */}
+                    <View className="h-20 w-20 rounded-full border-4 border-gray-100 items-center justify-center">
+                      <View
+                        className="h-20 w-20 rounded-full border-4 border-green-500 absolute"
+                        style={{
+                          borderTopColor: "transparent",
+                          transform: [{ rotate: "-45deg" }],
+                        }}
+                      />
+                      <Text className="text-lg font-semibold">
+                        {goal.progress}%
+                      </Text>
+                    </View>
+
+                    <View className="ml-6 flex-1">
+                      <Text className="text-xl font-semibold text-gray-800 break-all line-clamp-2 mb-2">
+                        {goal.title}
+                      </Text>
+                      <Text className="text-gray-500">
+                        Day {goal.currentDay} of {goal.totalDays}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* Page Indicator */}
+          {goals.length > 1 && (
+            <View className="flex-row justify-center mt-4">
+              {goals.map((_, index) => (
+                <View
+                  key={index}
+                  className={`w-2 h-2 mx-1 rounded-full ${
+                    index === activeCard ? "bg-green-500" : "bg-gray-300"
+                  }`}
+                />
+              ))}
             </View>
-            
-            <View className="ml-6">
-              <Text className="text-gray-500">Current Goal</Text>
-              <Text className="text-xl font-semibold text-gray-800">Learn Piano</Text>
-              <Text className="text-gray-500">Day 18 of 90</Text>
-            </View>
-          </View>
+          )}
         </View>
 
         {/* Today's Tasks */}
         <View className="mt-8 px-6">
-          <Text className="text-xl font-semibold text-gray-800 mb-4">Today's Tasks</Text>
-          
+          <Text className="text-xl font-semibold text-gray-800 mb-4">
+            Today's Plans
+          </Text>
+
           {/* Task List */}
           <View className="gap-y-2">
             {tasks.map((task) => (
@@ -173,80 +236,17 @@ export default function HomeScreen() {
           </View>
 
           {/* Add Task Button */}
-          <TouchableOpacity className="mt-6 border-2 border-dashed border-gray-200 rounded-2xl h-16 items-center justify-center" onPress={() => openTaskModal()}>
-            <Text className="text-gray-500">+ Add Task</Text>
+          <TouchableOpacity
+            className="mt-6 border-2 border-dashed border-gray-200 rounded-2xl h-16 items-center justify-center"
+            onPress={() => openTaskModal()}
+          >
+            <Text className="text-gray-400 text-xl font-bold">+</Text>
           </TouchableOpacity>
         </View>
-        
+
         {/* Bottom Padding for Tab Bar */}
         <View style={{ height: 100 }} />
       </Animated.ScrollView>
     </View>
   );
-};
-
-interface TaskItemProps {
-  title: string;
-  duration: string;
-  id: string;
-  onDelete?: (id: string) => void;
-  onComplete?: (id: string) => void;
-  onEdit?: (id: string) => void;
-  status: "pending" | "in_progress" | "completed" | "cancelled";
 }
-
-const SWIPE_THRESHOLD = -75;
-
-const TaskItem = ({ title, duration, id, onDelete, onComplete, onEdit, status }: TaskItemProps) => {
-  const translateX = useSharedValue(0);
-  const context = useSharedValue({ x: 0 });
-
-  const gesture = Gesture.Pan()
-    .onStart(() => {
-      context.value = { x: translateX.value };
-    })
-    .onUpdate((event) => {
-      const newTranslateX = event.translationX + context.value.x;
-      translateX.value = Math.min(0, Math.max(newTranslateX, -150));
-    })
-    .onEnd(() => {
-      if (translateX.value < SWIPE_THRESHOLD) {
-        translateX.value = withSpring(-150, { damping: 50 });
-      } else {
-        translateX.value = withSpring(0, { damping: 50 });
-      }
-    });
-
-  const rStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  return (
-    <View className="relative">
-      {/* Background Actions */}
-      <View className="absolute right-0 top-0 bottom-0 flex-row items-center justify-end bg-white rounded-2xl overflow-hidden">
-        <TouchableOpacity className="h-full w-[75px] bg-blue-500 items-center justify-center">
-          <Feather name="edit-2" size={20} color="white" />
-          <Text className="text-white text-xs mt-1">Edit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="h-full w-[75px] bg-red-500 items-center justify-center">
-          <Feather name="trash-2" size={20} color="white" />
-          <Text className="text-white text-xs mt-1">Delete</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Main Content */}
-      <GestureDetector gesture={gesture}>
-        <Animated.View style={rStyle} className="bg-white rounded-2xl p-4 flex-row items-center">
-          <TouchableOpacity className="h-6 w-6 rounded-full border-2 border-green-500 mr-4" onPress={() => onComplete && onComplete(id)}/>
-          <TouchableOpacity className="h-6 w-6 rounded-full border-2 border-red-800 mr-4" onPress={() => onDelete && onDelete(id)}/>
-          <TouchableOpacity className="h-6 w-6 rounded-full border-2 border-blue-500 mr-4" onPress={() => onEdit && onEdit(id)}/>
-          <View className='flex-1'>
-            <Text className="text-gray-800 font-medium break-all">{title} {status === "completed" && "(Completed)"}</Text>
-            <Text className="text-gray-500">{duration}</Text>
-          </View>
-        </Animated.View>
-      </GestureDetector>
-    </View>
-  );
-};

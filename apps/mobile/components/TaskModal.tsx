@@ -1,18 +1,26 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, Dimensions } from 'react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  Modal,
+  Dimensions,
+  Keyboard,
+} from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-  useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
   runOnJS,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
+import { Feather } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
 
 interface Task {
   content: string;
   duration: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
 }
 
 interface TaskModalProps {
@@ -22,41 +30,91 @@ interface TaskModalProps {
   initialTask?: Task;
 }
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
-const MODAL_HEIGHT = SCREEN_HEIGHT * 0.8;
-const DISMISS_THRESHOLD = MODAL_HEIGHT * 0.2;
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.4;
+const KEYBOARD_HEIGHT = SCREEN_HEIGHT * 0.8;
+const DISMISS_THRESHOLD = 125;
 
-export const TaskModal: React.FC<TaskModalProps> = ({ visible, onClose, onSave, initialTask }) => {
-  const [taskTitle, setTaskTitle] = useState(initialTask?.content || '');
-  const [duration, setDuration] = useState(initialTask?.duration || '1hr');
-  const [notes, setNotes] = useState('');
-  
-  const translateY = useSharedValue(0);
+export const TaskModal: React.FC<TaskModalProps> = ({
+  visible,
+  onClose,
+  onSave,
+  initialTask,
+}) => {
+  const [taskTitle, setTaskTitle] = useState(initialTask?.content || "");
+  const [duration, setDuration] = useState(
+    initialTask?.duration?.replace(/\D/g, "") || ""
+  );
 
-  const gestureHandler = useAnimatedGestureHandler({
-    onStart: (_, ctx: any) => {
-      ctx.startY = translateY.value;
-    },
-    onActive: (event, ctx) => {
-      translateY.value = ctx.startY + event.translationY;
-    },
-    onEnd: (event) => {
+  const translateY = useSharedValue(SCREEN_HEIGHT);
+  const modalHeight = useSharedValue(DEFAULT_HEIGHT);
+  const startY = useSharedValue(0);
+
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener("keyboardWillShow", () => {
+      modalHeight.value = withSpring(KEYBOARD_HEIGHT, {
+        stiffness: 200,
+        damping: 20,
+      });
+    });
+
+    const keyboardWillHide = Keyboard.addListener("keyboardWillHide", () => {
+      modalHeight.value = withSpring(DEFAULT_HEIGHT, {
+        stiffness: 200,
+        damping: 20,
+      });
+    });
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    translateY.value = 0;
+  }, [visible]);
+
+  const gesture = Gesture.Pan()
+    .onStart(() => {
+      startY.value = translateY.value;
+    })
+    .onUpdate((event) => {
+      // Only allow dragging downward
+      const newTranslateY = startY.value + event.translationY;
+      if (newTranslateY < 0) return; // Prevent upward movement
+      translateY.value = newTranslateY;
+    })
+    .onEnd((event) => {
       if (event.translationY > DISMISS_THRESHOLD) {
-        translateY.value = withSpring(MODAL_HEIGHT);
+        translateY.value = withSpring(SCREEN_HEIGHT);
         runOnJS(onClose)();
       } else {
         translateY.value = withSpring(0);
       }
-    },
+    });
+
+  const rStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateY: translateY.value }],
+    };
   });
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
+  const rModalStyle = useAnimatedStyle(() => {
+    return {
+      height: modalHeight.value,
+    };
+  });
+
+  const handleDurationChange = (text: string) => {
+    // Only allow numbers
+    const numbers = text.replace(/\D/g, "");
+    setDuration(numbers);
+  };
 
   const handleSave = () => {
     if (!taskTitle || !duration) return;
-    onSave(taskTitle, duration);
+    onSave(taskTitle, `${duration} mins`);
     onClose();
   };
 
@@ -68,71 +126,59 @@ export const TaskModal: React.FC<TaskModalProps> = ({ visible, onClose, onSave, 
       onRequestClose={onClose}
     >
       <View className="flex-1 justify-end">
-        <PanGestureHandler onGestureEvent={gestureHandler}>
-          <Animated.View 
-            style={[animatedStyle]} 
+        <GestureDetector gesture={gesture}>
+          <Animated.View
+            style={[rStyle, rModalStyle]}
             className="bg-white border-t"
-            
           >
-            <View className="p-6" style={{ height: MODAL_HEIGHT }}>
+            <View className="p-6" style={{ height: "100%" }}>
               <View className="w-12 h-1 bg-gray-300 rounded-full self-center mb-6" />
-              
-              <Text className="text-2xl font-semibold text-gray-800 mb-6">
-                {initialTask ? 'Edit Task' : 'New Task'}
-              </Text>
-              
+
               <View className="space-y-4">
                 <View>
-                  <Text className="text-gray-500 mb-2">Task Title *</Text>
+                  <View className="flex-row items-center mb-2">
+                    <Feather name="edit-3" size={18} color="#6B7280" />
+                    <Text className="text-gray-500 ml-2">
+                      What's on your mind?
+                    </Text>
+                  </View>
                   <TextInput
                     className="bg-gray-100 p-4 rounded-xl"
                     value={taskTitle}
                     onChangeText={setTaskTitle}
-                    placeholder="Enter task title"
+                    placeholder="e.g. Morning meditation"
                   />
                 </View>
 
                 <View>
-                  <Text className="text-gray-500 mb-2">Duration *</Text>
+                  <View className="flex-row items-center my-2">
+                    <Feather name="clock" size={18} color="#6B7280" />
+                    <Text className="text-gray-500 ml-2">
+                      How long will it take in minutes?
+                    </Text>
+                  </View>
                   <TextInput
                     className="bg-gray-100 p-4 rounded-xl"
                     value={duration}
-                    onChangeText={setDuration}
-                    placeholder="e.g. 1hr, 30min"
+                    onChangeText={handleDurationChange}
+                    placeholder="e.g. 30min"
+                    keyboardType="numeric"
                   />
                 </View>
-
-                {/* <View>
-                  <Text className="text-gray-500 mb-2">Notes</Text>
-                  <TextInput
-                    className="bg-gray-100 p-4 rounded-xl h-32"
-                    value={notes}
-                    onChangeText={setNotes}
-                    placeholder="Add any additional notes"
-                    multiline
-                  />
-                </View> */}
               </View>
 
-              <View className="flex-row gap-x-4 mt-8">
-                <TouchableOpacity 
-                  className="flex-1 p-4 bg-gray-200 rounded-xl" 
-                  onPress={onClose}
-                >
-                  <Text className="text-center text-gray-800">Cancel</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  className="flex-1 p-4 bg-green-200 rounded-xl"
+              <View className="flex-row mt-8">
+                <TouchableOpacity
+                  className={`flex-1 p-4 ${taskTitle && duration ? "bg-green-600" : "bg-green-200"} rounded-xl`}
                   onPress={handleSave}
                   disabled={!taskTitle || !duration}
                 >
-                  <Text className="text-center text-white">Save</Text>
+                  <Text className="border-2 rounded-full w-6 h-6 self-center border-white" />
                 </TouchableOpacity>
               </View>
             </View>
           </Animated.View>
-        </PanGestureHandler>
+        </GestureDetector>
       </View>
     </Modal>
   );
