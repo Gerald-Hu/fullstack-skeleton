@@ -57,6 +57,13 @@
       "when": 1734516977359,
       "tag": "0007_clear_hellfire_club",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1734799107702,
+      "tag": "0008_long_hellcat",
+      "breakpoints": true
     }
   ]
 }

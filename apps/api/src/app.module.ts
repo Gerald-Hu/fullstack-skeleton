@@ -3,11 +3,11 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { TRPCModule } from 'nestjs-trpc';
-import { DogsRouter } from "./hi/hi.router"; 
 import { AuthModule } from './auth/auth.module';
 import { TaskModule } from "./task/task.module";
 import { UsersModule } from './users/users.module';
 import { AppContext } from "./app.context";
+import { GoalsModule } from './goals/goals.module';
 
 @Module({
   imports: [
@@ -28,8 +28,9 @@ import { AppContext } from "./app.context";
     AuthModule,
     UsersModule,
     TaskModule,
+    GoalsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AppContext, DogsRouter],
+  providers: [AppService, AppContext],
 })
 export class AppModule {}

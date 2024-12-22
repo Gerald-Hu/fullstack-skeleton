@@ -5,7 +5,6 @@ const t = initTRPC.create();
 const publicProcedure = t.procedure;
 
 const appRouter = t.router({
-  hi: t.router({ sayHi: publicProcedure.query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any) }),
   auth: t.router({
     login: publicProcedure.input(z.object({
       email: z.string().email(),
@@ -101,6 +100,48 @@ const appRouter = t.router({
       userId: z.string(),
       duration: z.string(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
+  goals: t.router({
+    createGoal: publicProcedure.input(z.object({
+      content: z.string(),
+      durationDays: z.number(),
+    })).output(z.object({
+      id: z.string(),
+      content: z.string(),
+      durationDays: z.number(),
+      createdAt: z.date(),
+      completedAt: z.date().nullable(),
+      userId: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getGoals: publicProcedure.output(z.array(z.object({
+      id: z.string(),
+      content: z.string(),
+      durationDays: z.number(),
+      createdAt: z.date(),
+      completedAt: z.date().nullable(),
+      userId: z.string(),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getGoal: publicProcedure.output(z.object({
+      id: z.string(),
+      content: z.string(),
+      durationDays: z.number(),
+      createdAt: z.date(),
+      completedAt: z.date().nullable(),
+      userId: z.string(),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    deleteGoal: publicProcedure.input(z.object({
+      goalId: z.string().uuid(),
+    })).output(z.object({
+      id: z.string(),
+      content: z.string(),
+      durationDays: z.number(),
+      createdAt: z.date(),
+      completedAt: z.date().nullable(),
+      userId: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    updateGoal: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    completeGoal: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    suggestTasks: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   })
 });
 export type AppRouter = typeof appRouter;
