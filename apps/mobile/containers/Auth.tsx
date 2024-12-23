@@ -17,11 +17,14 @@ export function Auth() {
     loginWithGoogle,
     signup, 
     resetPassword,
+  } = useStore(state => state.auth);
+  
+  const {
     hasCompletedOnboarding,
-    completeOnboarding,
     checkOnboardingStatus,
-    resetOnboarding
-  } = useStore();
+    completeOnboarding,
+    resetOnboarding,
+  } = useStore(state => state.onboarding);
 
   useEffect(() => {
     checkOnboardingStatus();

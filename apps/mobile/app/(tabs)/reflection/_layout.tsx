@@ -11,10 +11,7 @@ export default function ReflectionLayout() {
       />
       <Stack.Screen name="chat-reflection"
         options={{
-          headerShown: true,
-          headerTitle: 'Chat Reflection',
-          headerBackButtonDisplayMode: 'minimal',
-          headerTintColor: 'black',
+          headerShown: false
         }}
       />
       <Stack.Screen name="histories"

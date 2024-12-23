@@ -59,12 +59,12 @@ export class GoalsService {
   }
 
   async remove(userId: string, id: string): Promise<Goal | null> {
-    try{
-    const [goal] = await db
-      .delete(goals)
-      .where(and(eq(goals.id, id), eq(goals.userId, userId)))
-      .returning();
-    return goal || null;
+    try {
+      const [goal] = await db
+        .delete(goals)
+        .where(and(eq(goals.id, id), eq(goals.userId, userId)))
+        .returning();
+      return goal || null;
     } catch (error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -74,21 +74,40 @@ export class GoalsService {
     }
   }
 
-  async update(id: string, data: Partial<NewGoal>): Promise<Goal | null> {
-    const [goal] = await db
-      .update(goals)
-      .set(data)
-      .where(eq(goals.id, id))
-      .returning();
-    return goal || null;
+  async update(
+    userId: string,
+    updatedGoal: { id: string; content?: string; durationDays?: number }
+  ): Promise<Goal | null> {
+    try {
+      const [goal] = await db
+        .update(goals)
+        .set(updatedGoal)
+        .where(and(eq(goals.id, updatedGoal.id), eq(goals.userId, userId)))
+        .returning();
+      return goal || null;
+    } catch (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to update goal",
+        cause: error,
+      });
+    }
   }
 
-  async complete(id: string): Promise<Goal | null> {
+  async complete(userId: string, id: string): Promise<Goal | null> {
+    try{
     const [goal] = await db
       .update(goals)
       .set({ completedAt: new Date() })
-      .where(eq(goals.id, id))
+      .where(and(eq(goals.id, id), eq(goals.userId, userId)))
       .returning();
     return goal || null;
+    } catch (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to complete goal",
+        cause: error,
+      });
+    }
   }
 }

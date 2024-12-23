@@ -139,9 +139,29 @@ const appRouter = t.router({
       completedAt: z.date().nullable(),
       userId: z.string(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    updateGoal: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    completeGoal: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    suggestTasks: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    updateGoal: publicProcedure.input(z.object({
+      id: z.string(),
+      content: z.string().optional(),
+      durationDays: z.number().optional(),
+    })).output(z.object({
+      id: z.string(),
+      content: z.string(),
+      durationDays: z.number(),
+      createdAt: z.date(),
+      completedAt: z.date().nullable(),
+      userId: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    suggestTasks: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    completeGoal: publicProcedure.input(z.object({
+      goalId: z.string().uuid(),
+    })).output(z.object({
+      id: z.string(),
+      content: z.string(),
+      durationDays: z.number(),
+      createdAt: z.date(),
+      completedAt: z.date().nullable(),
+      userId: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   })
 });
 export type AppRouter = typeof appRouter;

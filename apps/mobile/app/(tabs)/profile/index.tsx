@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 
 export default function ProfileScreen() {
-  const { user, logout } = useStore();
+  const { user, logout } = useStore(state => state.auth);
   const router = useRouter();
 
   // Settings state

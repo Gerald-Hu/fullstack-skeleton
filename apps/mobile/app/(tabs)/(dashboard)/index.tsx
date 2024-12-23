@@ -9,7 +9,6 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   useAnimatedScrollHandler,
@@ -17,19 +16,31 @@ import Animated, {
 } from "react-native-reanimated";
 import { useStore } from "@store/index";
 import { TaskModal } from "@components/TaskModal";
+import { GoalModal } from "@components/GoalModal";
+import { GoalCarousel } from "@components/GoalCarousel";
 import { Task } from "@/trpc-services/task";
 import { TaskItem } from "@components/TaskItem";
 import { Header } from "@components/ui/Header";
 import * as Haptics from "expo-haptics";
 
 const HEADER_HEIGHT = 60;
+const OPEN_GOAL_MODAL_THRESHOLD = 100;
 
 export default function HomeScreen() {
-  const { user, createTask, fetchTasks, tasks, deleteTask, updateTask } =
-    useStore();
+  const { createTask, fetchTasks, tasks, deleteTask, updateTask } = useStore(
+    (state) => state.task
+  );
+
+  const { user } = useStore((state) => state.auth);
+
+  const { fetchGoals, createGoal, deleteGoal, goals, updateGoal } = useStore(
+    (state) => state.goal
+  );
 
   const [taskModalVisible, setTaskModalVisible] = useState(false);
+  const [goalModalVisible, setGoalModalVisible] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingGoal, setEditingGoal] = useState<any | null>(null);
 
   const scrollY = useSharedValue(0);
   const insets = useSafeAreaInsets();
@@ -40,38 +51,14 @@ export default function HomeScreen() {
     },
   });
 
-  const [activeCard, setActiveCard] = useState(0);
-  const { width: SCREEN_WIDTH } = Dimensions.get("window");
-  const CARD_WIDTH = SCREEN_WIDTH - 32; // 32 = padding-x-4 (16 * 2)
+  const addRandomGoal = async () => {
+    await createGoal("Some Goal", 20);
+    await fetchGoals();
+  };
 
-  const goals = [
-    {
-      id: 1,
-      title: "Learn Piano and Improvise Music for Fun and Relaxation",
-      progress: 35,
-      currentDay: 18,
-      totalDays: 90,
-    },
-    {
-      id: 2,
-      title: "Master React Native Development",
-      progress: 65,
-      currentDay: 45,
-      totalDays: 60,
-    },
-    {
-      id: 3,
-      title: "Read 12 Books This Year",
-      progress: 25,
-      currentDay: 3,
-      totalDays: 12,
-    },
-  ];
-
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const contentOffset = event.nativeEvent.contentOffset.x;
-    const index = Math.round(contentOffset / CARD_WIDTH);
-    setActiveCard(index);
+  const removeGoal = async (goalId: string) => {
+    await deleteGoal(goalId);
+    await fetchGoals();
   };
 
   const openTaskModal = (task?: Task) => {
@@ -83,9 +70,20 @@ export default function HomeScreen() {
     setTaskModalVisible(true);
   };
 
+  const openGoalModal = (goal?: any) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setEditingGoal(goal || null);
+    setGoalModalVisible(true);
+  };
+
   const closeTaskModal = () => {
     setTaskModalVisible(false);
     setEditingTask(null);
+  };
+
+  const closeGoalModal = () => {
+    setGoalModalVisible(false);
+    setEditingGoal(null);
   };
 
   const handleSaveTask = async (content: string, duration: string) => {
@@ -99,6 +97,20 @@ export default function HomeScreen() {
       closeTaskModal();
     } catch (error) {
       console.error("Error saving task:", error);
+    }
+  };
+
+  const handleSaveGoal = async (content: string, durationDays: number) => {
+    try {
+      if (editingGoal) {
+        await updateGoal(editingGoal.id, { content, durationDays });
+      } else {
+        await createGoal(content, durationDays);
+      }
+      await fetchGoals();
+      closeGoalModal();
+    } catch (error) {
+      console.error("Error saving goal:", error);
     }
   };
 
@@ -124,6 +136,10 @@ export default function HomeScreen() {
     fetchTasks();
   }, [fetchTasks]);
 
+  useEffect(() => {
+    fetchGoals();
+  }, [fetchGoals]);
+
   return (
     <View className="flex-1 bg-gray-50">
       {taskModalVisible && (
@@ -132,6 +148,15 @@ export default function HomeScreen() {
           onClose={closeTaskModal}
           onSave={handleSaveTask}
           initialTask={editingTask || undefined}
+        />
+      )}
+
+      {goalModalVisible && (
+        <GoalModal
+          visible={goalModalVisible}
+          onClose={closeGoalModal}
+          onSave={handleSaveGoal}
+          initialGoal={editingGoal}
         />
       )}
 
@@ -151,69 +176,21 @@ export default function HomeScreen() {
         </View>
 
         {/* Main Goal Cards */}
-        <View>
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            decelerationRate="fast"
-            snapToInterval={CARD_WIDTH}
-            contentContainerStyle={{ paddingHorizontal: 16 }}
-          >
-            {goals.map((goal) => (
-              <View
-                key={goal.id}
-                style={{ width: CARD_WIDTH }}
-                className="px-2 py-2"
-              >
-                <View className="w-full bg-white rounded-3xl p-6 shadow-sm">
-                  <View className="flex-row items-center">
-                    {/* Progress Circle */}
-                    <View className="h-20 w-20 rounded-full border-4 border-gray-100 items-center justify-center">
-                      <View
-                        className="h-20 w-20 rounded-full border-4 border-green-500 absolute"
-                        style={{
-                          borderTopColor: "transparent",
-                          transform: [{ rotate: "-45deg" }],
-                        }}
-                      />
-                      <Text className="text-lg font-semibold">
-                        {goal.progress}%
-                      </Text>
-                    </View>
+        <GoalCarousel
+          goals={goals}
+          onOpenGoalModal={openGoalModal}
+          onRemoveGoal={removeGoal}
+          onUpdateGoal={(goalId) => {
+            const goal = goals.find(g => g.id === goalId);
+            if (goal) {
+              openGoalModal(goal);
+            }
+          }}
+          onSuggestTasks={() => {}}
+          OPEN_GOAL_MODAL_THRESHOLD={OPEN_GOAL_MODAL_THRESHOLD}
+        />
 
-                    <View className="ml-6 flex-1">
-                      <Text className="text-xl font-semibold text-gray-800 break-all line-clamp-2 mb-2">
-                        {goal.title}
-                      </Text>
-                      <Text className="text-gray-500">
-                        Day {goal.currentDay} of {goal.totalDays}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </ScrollView>
-
-          {/* Page Indicator */}
-          {goals.length > 1 && (
-            <View className="flex-row justify-center mt-4">
-              {goals.map((_, index) => (
-                <View
-                  key={index}
-                  className={`w-2 h-2 mx-1 rounded-full ${
-                    index === activeCard ? "bg-green-500" : "bg-gray-300"
-                  }`}
-                />
-              ))}
-            </View>
-          )}
-        </View>
-
-        {/* Today's Tasks */}
+        {/* Tasks Section */}
         <View className="mt-8 px-6">
           <Text className="text-xl font-semibold text-gray-800 mb-4">
             Today's Plans
@@ -233,6 +210,10 @@ export default function HomeScreen() {
                 onEdit={() => openTaskModal(task)}
               />
             ))}
+
+            {tasks.length === 0 && (
+              <Text className="text-gray-500">You have no tasks today</Text>
+            )}
           </View>
 
           {/* Add Task Button */}

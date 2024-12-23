@@ -1,23 +1,25 @@
-import React from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  KeyboardAvoidingView, 
+import React from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Keyboard
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { 
-  useAnimatedStyle, 
-  withTiming, 
+  Keyboard,
+} from "react-native";
+import { BlurView } from "expo-blur";
+import { router } from "expo-router";
+import { Feather } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Animated, {
+  useAnimatedStyle,
+  withTiming,
   useSharedValue,
   withSpring,
-  interpolate
-} from 'react-native-reanimated';
+  interpolate,
+} from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 
 export default function ChatReflection() {
@@ -26,28 +28,26 @@ export default function ChatReflection() {
   const isKeyboardOpen = useSharedValue(0);
 
   React.useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardWillShow', (e) => {
+    const showSubscription = Keyboard.addListener("keyboardWillShow", (e) => {
       keyboardHeight.value = withSpring(e.endCoordinates.height, {
         damping: 20,
         stiffness: 200,
-        mass: 0.6
+        mass: 0.6,
       });
       isKeyboardOpen.value = withSpring(1, {
         damping: 20,
         stiffness: 200,
-        mass: 0.6
+        mass: 0.6,
       });
     });
-    const hideSubscription = Keyboard.addListener('keyboardWillHide', () => {
+    const hideSubscription = Keyboard.addListener("keyboardWillHide", () => {
       keyboardHeight.value = withSpring(0, {
         damping: 20,
         stiffness: 200,
-       
       });
       isKeyboardOpen.value = withSpring(0, {
         damping: 20,
         stiffness: 200,
-       
       });
     });
 
@@ -71,18 +71,36 @@ export default function ChatReflection() {
   });
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       className="flex-1 bg-neutral-50 relative"
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
-      <ScrollView 
+      {/* Header */}
+      <BlurView
+        intensity={30}
+        tint="light"
+        className="border-b border-gray-200"
+        style={{ paddingTop: insets.top }}
+      >
+        <View className="h-14 flex-row items-center px-4">
+          <TouchableOpacity onPress={() => router.back()}>
+            <Feather name="chevron-left" size={24} color="#666" />
+          </TouchableOpacity>
+          <Text className="flex-1 text-center text-lg font-semibold text-gray-800 mr-6">
+            Daily Reflection
+          </Text>
+        </View>
+      </BlurView>
+      <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 16 }}
       >
         {/* Header */}
         <View className="p-6 pt-12">
-          <Text className="text-xl font-semibold text-gray-800">Daily Reflection</Text>
+          <Text className="text-xl font-semibold text-gray-800">
+            Daily Reflection
+          </Text>
           <Text className="text-gray-500">December 15, 2024</Text>
         </View>
 
@@ -91,7 +109,8 @@ export default function ChatReflection() {
           {/* AI Message */}
           <View className="bg-white rounded-2xl p-4 ml-0 mr-12">
             <Text className="text-gray-800">
-              How was your practice session today? I noticed you scheduled 75 minutes of piano practice.
+              How was your practice session today? I noticed you scheduled 75
+              minutes of piano practice.
             </Text>
           </View>
 
@@ -105,14 +124,17 @@ export default function ChatReflection() {
           {/* AI Follow-up */}
           <View className="bg-white rounded-2xl p-4 ml-0 mr-12">
             <Text className="text-gray-800">
-              I understand. Let's break down the new piece into smaller sections. What part was most challenging?
+              I understand. Let's break down the new piece into smaller
+              sections. What part was most challenging?
             </Text>
           </View>
         </View>
 
         {/* Mood Tracker */}
         <View className="mx-4 bg-white rounded-2xl p-4 mb-4">
-          <Text className="text-gray-500 mb-4">How do you feel about today's progress?</Text>
+          <Text className="text-gray-500 mb-4">
+            How do you feel about today's progress?
+          </Text>
           <View className="flex-row justify-around">
             <MoodButton icon="sun" color="#FFD700" />
             <MoodButton icon="smile" color="#4CAF50" />
@@ -123,14 +145,13 @@ export default function ChatReflection() {
       </ScrollView>
 
       {/* Input Area - Fixed at bottom with smooth animation */}
-      <Animated.View 
+      <Animated.View
         className="absolute left-0 w-full bg-gray-50"
         style={animatedInputStyle}
       >
         <View className="p-4">
-
           <View className="flex-row items-end bg-gray-200 rounded-2xl px-4 py-2 border border-gray-300">
-            <TextInput 
+            <TextInput
               placeholder="Share your thoughts..."
               className="flex-1 max-h-32 py-2"
               multiline
@@ -153,11 +174,17 @@ export default function ChatReflection() {
       </Animated.View>
     </KeyboardAvoidingView>
   );
-};
+}
 
 // Mood Button Component
-const MoodButton = ({ icon, color }: {icon: keyof typeof Feather.glyphMap; color: string}) => (
-  <TouchableOpacity 
+const MoodButton = ({
+  icon,
+  color,
+}: {
+  icon: keyof typeof Feather.glyphMap;
+  color: string;
+}) => (
+  <TouchableOpacity
     className="h-12 w-12 rounded-full items-center justify-center"
     style={{ backgroundColor: color }}
   >

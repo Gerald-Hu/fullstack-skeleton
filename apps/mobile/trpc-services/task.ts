@@ -38,12 +38,11 @@ export class TaskService {
     return await trpc.task.deleteTask.mutate({ taskId });
   }
 
-  // @withTokenRefresh()
-  // async updateTask(taskId: string, input: Partial<CreateTaskInput>): Promise<Task> {
-  //   return await trpc.task.updateTask.mutate({
-  //     taskId,
-  //     ...input
-  //   });
-  // }
-
+  @withTokenRefresh()
+  async updateTask(taskId: string, input: Partial<CreateTaskInput>): Promise<Task> {
+    return await trpc.task.updateTask.mutate({
+      taskId,
+      content: { ...input },
+    });
+  }
 }

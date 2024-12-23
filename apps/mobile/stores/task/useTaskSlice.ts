@@ -1,4 +1,4 @@
-import { StateCreator } from "zustand";
+import { SliceCreator } from "@/stores";
 import { trpc } from "@/utils/trpc";
 import { Task } from "@/trpc-services/task";
 import { container } from "tsyringe";
@@ -23,7 +23,7 @@ export interface TaskActions {
 
 export type TaskSlice = TaskState & TaskActions;
 
-export const createTaskSlice: StateCreator<TaskSlice> = (set, get) => ({
+export const createTaskSlice: SliceCreator<TaskSlice> = (set, get) => ({
   tasks: [],
   isLoading: false,
   error: null,
@@ -33,11 +33,23 @@ export const createTaskSlice: StateCreator<TaskSlice> = (set, get) => ({
 
   fetchTasks: async () => {
     try {
-      set({ isLoading: true, error: null });
+      set((state) => ({
+        task: {
+          ...state.task,
+          isLoading: true,
+          error: null,
+        },
+      }));
 
       const tasks = await container.resolve(TaskService).getTasks();
 
-      set({ tasks, isLoading: false });
+      set((state) => ({
+        task: {
+          ...state.task,
+          tasks,
+          isLoading: false,
+        },
+      }));
 
       const tasksMap = new Map<string, Task[]>();
       tasks.forEach((task) => {
@@ -46,45 +58,88 @@ export const createTaskSlice: StateCreator<TaskSlice> = (set, get) => ({
         tasksMap.set(date, [...existingTasks, task]);
       });
 
-      set({ tasksMap });
-
+      set((state) => ({
+        task: {
+          ...state.task,
+          tasksMap,
+        },
+      }));
     } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : "Failed to fetch tasks",
-        isLoading: false,
-      });
+      set(state => ({
+        task: {
+          ...state.task,
+          isLoading: false,
+          error: error instanceof Error ? error.message : "Failed to fetch tasks",
+        },
+      }));
     }
   },
 
   createTask: async (content: string, status: Task["status"]) => {
     try {
-      set({ isLoading: true, error: null });
-      const newTask = await container.resolve(TaskService).createTask({content, duration: "35min"});
-      set((state) => ({
-        tasks: [...state.tasks, newTask],
-        isLoading: false,
+      set(state => ({
+        task: {
+          ...state.task,
+          isLoading: true,
+          error: null,
+        },
       }));
+      const newTask = await container
+        .resolve(TaskService)
+        .createTask({ content, duration: "35min" });
+
+      set(state => ({
+        task: {
+          ...state.task,
+          tasks: [...state.task.tasks, newTask],
+          isLoading: false,
+        },
+      }));
+
     } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : "Failed to create task",
-        isLoading: false,
-      });
+      set(state => ({
+        task: {
+          ...state.task,
+          isLoading: false,
+          error: error instanceof Error ? error.message : "Failed to create task",
+        },
+      }));
+      throw new Error(
+        error instanceof Error ? error.message : "Failed to create task"
+      );
     }
   },
 
   deleteTask: async (taskId: string) => {
     try {
-      set({ isLoading: true, error: null });
-      const result = await container.resolve(TaskService).deleteTask(taskId);
-      set((state) => ({
-        tasks: state.tasks.filter((task) => task.id !== taskId),
-        isLoading: false,
+      set(state => ({
+        task: {
+          ...state.task,
+          isLoading: true,
+          error: null,
+        },
       }));
+
+      const result = await container.resolve(TaskService).deleteTask(taskId);
+      set(state => ({
+        task: {
+          ...state.task,
+          tasks: state.task.tasks.filter((task) => task.id !== taskId),
+          isLoading: false,
+        },
+      }));
+
     } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : "Failed to delete task",
-        isLoading: false,
-      });
+      set(state => ({
+        task: {
+          ...state.task,
+          isLoading: false,
+          error: error instanceof Error ? error.message : "Failed to delete task",
+        },
+      }));
+      throw new Error(
+        error instanceof Error ? error.message : "Failed to delete task"
+      );
     }
   },
 
@@ -93,15 +148,27 @@ export const createTaskSlice: StateCreator<TaskSlice> = (set, get) => ({
     data: Partial<Pick<Task, "content" | "status" | "duration">>
   ) => {
     try {
-      set({ isLoading: true, error: null });
-      const result = await trpc.task.updateTask.mutate({ taskId, content: {...data} });
+      set(state => ({
+        task: {
+          ...state.task,
+          isLoading: true,
+          error: null,
+        },
+      }));
+
+      const result = await container.resolve(TaskService).updateTask(taskId, data);
+      
     } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : "Failed to update task",
-        isLoading: false,
-      });
+      set(state => ({
+        task: {
+          ...state.task,
+          isLoading: false,
+          error: error instanceof Error ? error.message : "Failed to update task",
+        },
+      }));
+      throw new Error(
+        error instanceof Error ? error.message : "Failed to update task"
+      );
     }
   },
-
-
 });

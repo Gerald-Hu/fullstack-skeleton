@@ -16,6 +16,8 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@langchain/core": "^0.3.26",
+    "@langchain/openai": "^0.3.16",
     "@nestjs/common": "^10.2.8",
     "@nestjs/core": "^10.2.8",
     "@nestjs/jwt": "^10.2.0",
@@ -35,6 +37,7 @@
     "drizzle-orm": "^0.37.0",
     "expo-secure-store": "^14.0.0",
     "google-auth-library": "^9.15.0",
+    "langchain": "^0.3.7",
     "nestjs-trpc": "^1.6.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",

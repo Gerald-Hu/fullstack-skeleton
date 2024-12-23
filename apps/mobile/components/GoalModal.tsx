@@ -18,16 +18,16 @@ import Animated, {
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 
-interface Task {
+interface Goal {
   content: string;
-  duration: string;
+  durationDays: number;
 }
 
-interface TaskModalProps {
+interface GoalModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (content: string, duration: string) => void;
-  initialTask?: Task;
+  onSave: (content: string, durationDays: number) => void;
+  initialGoal?: Goal;
 }
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -35,15 +35,15 @@ const DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.4;
 const KEYBOARD_HEIGHT = SCREEN_HEIGHT * 0.8;
 const DISMISS_THRESHOLD = 125;
 
-export const TaskModal: React.FC<TaskModalProps> = ({
+export const GoalModal: React.FC<GoalModalProps> = ({
   visible,
   onClose,
   onSave,
-  initialTask,
+  initialGoal,
 }) => {
-  const [taskTitle, setTaskTitle] = useState(initialTask?.content || "");
+  const [goalTitle, setGoalTitle] = useState(initialGoal?.content || "");
   const [duration, setDuration] = useState(
-    initialTask?.duration?.replace(/\D/g, "") || ""
+    initialGoal?.durationDays?.toString() || ""
   );
 
   const translateY = useSharedValue(SCREEN_HEIGHT);
@@ -113,8 +113,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   };
 
   const handleSave = () => {
-    if (!taskTitle || !duration) return;
-    onSave(taskTitle, `${duration} mins`);
+    if (!goalTitle || !duration) return;
+    onSave(goalTitle, parseInt(duration, 10));
     onClose();
   };
 
@@ -125,13 +125,14 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View className="flex-1 justify-end relative">
+      <View className="flex-1 justify-end">
         <GestureDetector gesture={gesture}>
           <Animated.View
             style={[rStyle, rModalStyle]}
             className="bg-white border-t"
           >
             <View className="p-6" style={{ height: "100%" }}>
+              <View className="w-12 h-1 bg-gray-300 rounded-full self-center mb-6" />
               <TouchableOpacity
                 className="p-2 rounded-full absolute top-2 right-4"
                 onPress={onClose}
@@ -139,36 +140,34 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 <MaterialIcons name="close" size={24} color="#9ca3af" />
               </TouchableOpacity>
 
-              <View className="w-12 h-1 bg-gray-300 rounded-full self-center mb-6" />
-
               <View className="space-y-4">
                 <View>
                   <View className="flex-row items-center mb-2">
-                    <Feather name="edit-3" size={18} color="#6B7280" />
+                    <Feather name="target" size={18} color="#6B7280" />
                     <Text className="text-gray-500 ml-2">
-                      What's on your mind?
+                      What's your goal?
                     </Text>
                   </View>
                   <TextInput
                     className="bg-gray-100 p-4 rounded-xl"
-                    value={taskTitle}
-                    onChangeText={setTaskTitle}
-                    placeholder="e.g. Morning meditation"
+                    value={goalTitle}
+                    onChangeText={setGoalTitle}
+                    placeholder="e.g. Learn a new language"
                   />
                 </View>
 
                 <View>
                   <View className="flex-row items-center my-2">
-                    <Feather name="clock" size={18} color="#6B7280" />
+                    <Feather name="calendar" size={18} color="#6B7280" />
                     <Text className="text-gray-500 ml-2">
-                      How long will it take in minutes?
+                      How many days to achieve this goal?
                     </Text>
                   </View>
                   <TextInput
                     className="bg-gray-100 p-4 rounded-xl"
                     value={duration}
                     onChangeText={handleDurationChange}
-                    placeholder="e.g. 30min"
+                    placeholder="e.g. 30 days"
                     keyboardType="numeric"
                   />
                 </View>
@@ -176,9 +175,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
               <View className="flex-row mt-8">
                 <TouchableOpacity
-                  className={`flex-1 p-4 ${taskTitle && duration ? "bg-green-600" : "bg-green-200"} rounded-xl`}
+                  className={`flex-1 p-4 ${goalTitle && duration ? "bg-blue-600" : "bg-blue-200"} rounded-xl`}
                   onPress={handleSave}
-                  disabled={!taskTitle || !duration}
+                  disabled={!goalTitle || !duration}
                 >
                   <Text className="border-2 rounded-full w-6 h-6 self-center border-white" />
                 </TouchableOpacity>

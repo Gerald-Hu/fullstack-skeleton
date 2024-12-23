@@ -3,12 +3,9 @@ import {
   AuthService,
   User,
   SecureStorageError,
-  Tokens,
 } from "@service/auth";
 import { container } from "tsyringe";
-
-import { StateCreator } from "zustand";
-import { trpc } from "@/utils/trpc";
+import { SliceCreator } from "..";
 import * as SecureStore from "expo-secure-store";
 import { TOKEN_KEYS } from "@/utils/trpc";
 
@@ -28,7 +25,7 @@ export interface AuthActions {
 
 export type AuthSlice = AuthState & AuthActions;
 
-export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
+export const createAuthSlice: SliceCreator<AuthSlice> = (set) => ({
   // Initial state
   user: null,
   isAuthenticated: false,
@@ -39,10 +36,13 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
         .resolve(AuthService)
         .login(email, password);
 
-      set({
-        isAuthenticated: true,
-        user: { ...result.user },
-      });
+      set(state => ({
+        auth: {
+          ...state.auth,
+          user: result.user,
+          isAuthenticated: true
+        }
+      }));
     } catch (error) {
       if (error instanceof SecureStorageError) {
         throw error;
@@ -58,10 +58,13 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
         .resolve(AuthService)
         .loginWithGoogle(idToken);
         
-      set({
-        isAuthenticated: true,
-        user: { ...result.user },
-      });
+      set(state => ({
+        auth: {
+          ...state.auth,
+          user: { ...result.user },
+          isAuthenticated: true
+        }
+      }));
     } catch (error) {
       if (error instanceof SecureStorageError) {
         throw error;
@@ -77,10 +80,13 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
         .resolve(AuthService)
         .signup(name, email, password);
 
-      set({
-        isAuthenticated: true,
-        user: { ...result.user },
-      });
+      set(state => ({
+        auth: {
+          ...state.auth,
+          user: { ...result.user },
+          isAuthenticated: true
+        }
+      }));
     } catch (error) {
       if (error instanceof SecureStorageError) {
         throw error;
@@ -98,10 +104,13 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
     try {
       await container.resolve(AuthService).logout();
       // Clear memory state
-      set({
-        user: null,
-        isAuthenticated: false,
-      });
+      set(state => ({
+        auth: {
+          ...state.auth,
+          user: null,
+          isAuthenticated: false,
+        }
+      }));
     } catch (error) {
       console.error("Logout error:", error);
       // alert("Error during logout. Your session has been cleared locally.");
@@ -113,11 +122,23 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
   fetchUser: async () => {
     try {
       const user = await container.resolve(AuthService).fetchUser();
-      set({ user: { ...user }, isAuthenticated: true });
+      set(state => ({
+        auth: {
+          ...state.auth,
+          user: { ...user },
+          isAuthenticated: true
+        }
+      }));
     } catch (error) {
       // If fetch fails, log the user out
       await SecureStore.deleteItemAsync(TOKEN_KEYS.ACCESS_TOKEN);
-      set({ user: null, isAuthenticated: false });
+      set(state => ({
+        auth: {
+          ...state.auth,
+          user: null,
+          isAuthenticated: false,
+        }
+      }));
       // console.error("User fetch error:", error);
       // alert("Your session has expired. Please login again.");
     }

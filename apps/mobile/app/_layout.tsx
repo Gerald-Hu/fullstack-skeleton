@@ -26,7 +26,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const { fetchUser, user, isAuthenticated } = useStore();
+  const { fetchUser, user, isAuthenticated } = useStore(state => state.auth);
 
   const [loading, setLoading] = useState(true);
 

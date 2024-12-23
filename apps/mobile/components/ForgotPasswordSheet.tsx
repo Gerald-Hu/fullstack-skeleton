@@ -13,7 +13,7 @@ export function ForgotPasswordSheet({ onReset, onLoginPress }: ForgotPasswordShe
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
-  const resetPassword = useStore((state) => state.resetPassword);
+  const { resetPassword } = useStore(state => state.auth);
 
   const handleResetPassword = async () => {
     try {
