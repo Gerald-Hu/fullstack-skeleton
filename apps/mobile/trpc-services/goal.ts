@@ -39,4 +39,9 @@ export class GoalService {
     return await trpc.goals.updateGoal.mutate({ id: goalId, ...data }) as Goal;
   }
 
+  @withTokenRefresh()
+  async suggestTasks(input: string) {
+    return await trpc.agent.suggestTasks.mutate({ input });
+  }
+
 }

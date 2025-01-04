@@ -8,6 +8,7 @@ import { TaskModule } from "./task/task.module";
 import { UsersModule } from './users/users.module';
 import { AppContext } from "./app.context";
 import { GoalsModule } from './goals/goals.module';
+import { AgentModule } from "./ai-agent/agent.module";
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { GoalsModule } from './goals/goals.module';
     UsersModule,
     TaskModule,
     GoalsModule,
+    AgentModule
   ],
   controllers: [AppController],
   providers: [AppService, AppContext],

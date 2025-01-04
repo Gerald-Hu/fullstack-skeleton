@@ -1,11 +1,14 @@
 import { create, StateCreator } from "zustand";
 import { createAuthSlice, AuthSlice } from "./auth/useAuthSlice";
-import { createOnboardingSlice, OnboardingSlice } from "./onboarding/useOnboardingSlice";
+import {
+  createOnboardingSlice,
+  OnboardingSlice,
+} from "./onboarding/useOnboardingSlice";
 import { createTaskSlice, TaskSlice } from "./task/useTaskSlice";
 import { createGoalSlice, GoalSlice } from "./goal/useGoalSlice";
 
 // Define the shape of our entire store
-type StoreState = { 
+type StoreState = {
   auth: AuthSlice;
   onboarding: OnboardingSlice;
   task: TaskSlice;

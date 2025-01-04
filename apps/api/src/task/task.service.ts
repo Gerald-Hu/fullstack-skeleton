@@ -9,6 +9,7 @@ export const newTaskSchema = z.object({
   content: z.string(),
   duration: z.string().optional(),
   status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']).optional(),
+  goal: z.string().uuid().optional()
 });
 
 @Injectable()
@@ -37,7 +38,8 @@ export class TaskService {
         userId,
         content: data.content,
         status: "pending",
-        duration: data.duration
+        duration: data.duration,
+        goalId: data.goal
       }).returning();
       
       return newTask;

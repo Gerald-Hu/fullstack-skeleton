@@ -33,7 +33,7 @@ export default function HomeScreen() {
 
   const { user } = useStore((state) => state.auth);
 
-  const { fetchGoals, createGoal, deleteGoal, goals, updateGoal } = useStore(
+  const { fetchGoals, createGoal, deleteGoal, goals, updateGoal, suggestTask } = useStore(
     (state) => state.goal
   );
 
@@ -132,6 +132,15 @@ export default function HomeScreen() {
     }
   };
 
+  const suggestTaskAndFetchTasks = async (goalId: string) => {
+    try {
+      await suggestTask(goalId);
+      await fetchTasks();
+    } catch (error) {
+      console.error("Error adding task with ai:", error);
+    }
+  };
+
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
@@ -186,7 +195,7 @@ export default function HomeScreen() {
               openGoalModal(goal);
             }
           }}
-          onSuggestTasks={() => {}}
+          onSuggestTasks={suggestTaskAndFetchTasks}
           OPEN_GOAL_MODAL_THRESHOLD={OPEN_GOAL_MODAL_THRESHOLD}
         />
 
