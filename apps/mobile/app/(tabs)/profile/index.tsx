@@ -6,6 +6,7 @@ import { useState } from "react";
 
 export default function ProfileScreen() {
   const { user, logout } = useStore(state => state.auth);
+  const { showOnboarding } = useStore(state => state.onboarding);
   const router = useRouter();
 
   // Settings state
@@ -140,6 +141,17 @@ export default function ProfileScreen() {
           <View className="flex-row items-center">
             <Feather name="help-circle" size={20} color="#666" />
             <Text className="text-gray-800 ml-3">Help & Support</Text>
+          </View>
+          <Feather name="chevron-right" size={20} color="#666" />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          className="bg-white p-4 rounded-xl flex-row justify-between items-center"
+          onPress={() => showOnboarding()}
+        >
+          <View className="flex-row items-center">
+            <Feather name="refresh-ccw" size={20} color="#666" />
+            <Text className="text-gray-800 ml-3">Watch Tutorial</Text>
           </View>
           <Feather name="chevron-right" size={20} color="#666" />
         </TouchableOpacity>

@@ -17,6 +17,7 @@ import "../global.css";
 import { Animated } from "react-native";
 import { ActivityIndicator } from "react-native";
 import { View } from "@components/Themed";
+import { OnboardingScreen } from "@/components/OnboardingScreen";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { Auth } from "@/containers/Auth";
@@ -27,6 +28,13 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { fetchUser, user, isAuthenticated } = useStore(state => state.auth);
+  const { 
+    hasCompletedOnboarding, 
+    isOnboardingVisible,
+    checkOnboardingStatus, 
+    completeOnboarding,
+    hideOnboarding
+  } = useStore(state => state.onboarding);
 
   const [loading, setLoading] = useState(true);
 
@@ -48,6 +56,7 @@ export default function RootLayout() {
     async function getMe() {
       try {
         await fetchUser();
+        await checkOnboardingStatus();
       } catch (error) {
         console.log(error);
       } finally {
@@ -124,6 +133,12 @@ export default function RootLayout() {
           )}
         </Animated.View>
         <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+
+        <OnboardingScreen
+          visible={isOnboardingVisible}
+          onComplete={completeOnboarding}
+          onDismiss={hideOnboarding}
+        />
       </ThemeProvider>
     </GestureHandlerRootView>
   );

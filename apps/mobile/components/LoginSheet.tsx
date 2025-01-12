@@ -36,7 +36,6 @@ export function LoginSheet({ onLogin, onLoginWithGoogle, onSignupPress, onForgot
   };
 
   const handleGoogleLogin = async () => {
-    console.log('handleGoogleLogin');
     try {
       await GoogleSignin.hasPlayServices();
       const response = await GoogleSignin.signIn();
