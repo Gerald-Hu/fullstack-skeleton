@@ -4,8 +4,6 @@ import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground.ios';
-import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function TabLayout() {
@@ -14,15 +12,18 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: "black",
         tabBarStyle: {
           position: 'absolute',
-          height: 85,
-          backgroundColor: 'transparent',
+          height: 80,
+          backgroundColor: '#f1f2f3',
           borderTopWidth: 0,
           elevation: 0,
         },
-        tabBarBackground: () => <TabBarBackground />,
+        tabBarLabelStyle:{
+          fontSize: 13,
+          color: "#353535"
+        },
         tabBarButton: (props) => <HapticTab {...props} />,
         headerShown: false,
       }}>
@@ -30,32 +31,18 @@ export default function TabLayout() {
       <Tabs.Screen
         name="(dashboard)"
         options={{
-          title: 'Dashboard',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.pie.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="reflection"
-        options={{
-          title: 'Reflection',
-          tabBarIcon: ({ color }) => <IconSymbol size={30} name="list.bullet.rectangle.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          title: 'Plans',
+          tabBarIcon: () => null,
         }}
       />
 
+      <Tabs.Screen
+        name="reflection"
+        options={{
+          title: 'Reflections',
+          tabBarIcon: () => null,
+        }}
+      />
     </Tabs>
   );
 }

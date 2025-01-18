@@ -8,6 +8,7 @@ import {
   ScrollView,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Pressable,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
@@ -33,9 +34,8 @@ export default function HomeScreen() {
 
   const { user } = useStore((state) => state.auth);
 
-  const { fetchGoals, createGoal, deleteGoal, goals, updateGoal, suggestTask } = useStore(
-    (state) => state.goal
-  );
+  const { fetchGoals, createGoal, deleteGoal, goals, updateGoal, suggestTask } =
+    useStore((state) => state.goal);
 
   const [taskModalVisible, setTaskModalVisible] = useState(false);
   const [goalModalVisible, setGoalModalVisible] = useState(false);
@@ -123,10 +123,15 @@ export default function HomeScreen() {
     }
   };
 
-  const handleCompleteTask = async (taskId: string) => {
+  const handleToggleTaskState = async (taskId: string) => {
     try {
-      await updateTask(taskId, { status: "completed" });
-      await fetchTasks();
+      if (tasks.find((task) => task.id === taskId)?.status === "completed") {
+        await updateTask(taskId, { status: "pending" });
+        await fetchTasks();
+      } else {
+        await updateTask(taskId, { status: "completed" });
+        await fetchTasks();
+      }
     } catch (error) {
       console.error("Error completing task:", error);
     }
@@ -150,7 +155,7 @@ export default function HomeScreen() {
   }, [fetchGoals]);
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-[#f1f2f3]">
       {taskModalVisible && (
         <TaskModal
           visible={taskModalVisible}
@@ -169,19 +174,30 @@ export default function HomeScreen() {
         />
       )}
 
-      <Header title="Plans" scrollY={scrollY} headerHeight={HEADER_HEIGHT} />
+      {/* <Header title="Plans" scrollY={scrollY} headerHeight={HEADER_HEIGHT} /> */}
 
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         contentContainerStyle={{ flexGrow: 1 }}
       >
-        {/* Greeting */}
-        <View className="p-6" style={{ paddingTop: insets.top + 24 }}>
-          <Text className="text-gray-500">Good morning,</Text>
-          <Text className="text-2xl font-semibold text-gray-800">
+        {/* Greeting and action button */}
+        <View className="px-6 mb-4 flex flex-row justify-between items-center" style={{ paddingTop: insets.top + 4 }}>
+          <View>
+            <Text className="text-black font-semibold">Good morning!</Text>
+            {/* <Text className="text-2xl font-semibold text-gray-800">
             {user?.name?.split(" ")[0]}
-          </Text>
+          </Text> */}
+            <Text className="font-semibold pt-1 text-sm text-[#8c8686]">
+              January 15
+            </Text>
+          </View>
+          <View>
+            <Pressable>
+              <View className="w-[52px] h-[29px] bg-white rounded-full border border-[#ebd7d7]">
+              </View>
+            </Pressable>
+          </View>
         </View>
 
         {/* Main Goal Cards */}
@@ -190,7 +206,7 @@ export default function HomeScreen() {
           onOpenGoalModal={openGoalModal}
           onRemoveGoal={removeGoal}
           onUpdateGoal={(goalId) => {
-            const goal = goals.find(g => g.id === goalId);
+            const goal = goals.find((g) => g.id === goalId);
             if (goal) {
               openGoalModal(goal);
             }
@@ -200,25 +216,27 @@ export default function HomeScreen() {
         />
 
         {/* Tasks Section */}
-        <View className="mt-8 px-6">
-          <Text className="text-xl font-semibold text-gray-800 mb-4">
+        <View className="mt-2 px-6">
+          <Text className="font-semibold text-gray-800 mb-4">
             Today's Plans
           </Text>
 
-          {/* Task List */}
-          <View className="gap-y-2">
-            {tasks.map((task) => (
-              <TaskItem
-                key={task.id}
-                id={task.id}
-                title={task.content}
-                duration={task.duration}
-                status={task.status}
-                onDelete={handleDeleteTask}
-                onComplete={handleCompleteTask}
-                onEdit={() => openTaskModal(task)}
-              />
-            ))}
+          {/* Ongoing Task List */}
+          <View>
+            {tasks
+              .filter((task) => task.status !== "completed")
+              .map((task) => (
+                <TaskItem
+                  key={task.id}
+                  id={task.id}
+                  title={task.content}
+                  duration={task.duration}
+                  status={task.status}
+                  onDelete={handleDeleteTask}
+                  onToggleState={handleToggleTaskState}
+                  onEdit={() => openTaskModal(task)}
+                />
+              ))}
 
             {tasks.length === 0 && (
               <Text className="text-gray-500">You have no tasks today</Text>
@@ -226,13 +244,40 @@ export default function HomeScreen() {
           </View>
 
           {/* Add Task Button */}
-          <TouchableOpacity
+          {/* TODO: Remove this cta and move it to the bottom tabber */}
+          {/* <TouchableOpacity
             className="mt-6 border-2 border-dashed border-gray-200 rounded-2xl h-16 items-center justify-center"
             onPress={() => openTaskModal()}
           >
             <Text className="text-gray-400 text-xl font-bold">+</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
+
+        {tasks.filter((task) => task.status === "completed").length > 0 && (
+          <View className="mt-4 mx-6 border-t border-t-[#e3e3e3] pt-6 rounded-xl">
+            {/* Completed Task List */}
+            <View>
+              {tasks
+                .filter((task) => task.status === "completed")
+                .map((task) => (
+                  <TaskItem
+                    key={task.id}
+                    id={task.id}
+                    title={task.content}
+                    duration={task.duration}
+                    status={task.status}
+                    onDelete={handleDeleteTask}
+                    onToggleState={handleToggleTaskState}
+                    onEdit={() => openTaskModal(task)}
+                  />
+                ))}
+
+              {tasks.length === 0 && (
+                <Text className="text-gray-500">You have no tasks today</Text>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Bottom Padding for Tab Bar */}
         <View style={{ height: 100 }} />

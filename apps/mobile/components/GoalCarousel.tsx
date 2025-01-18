@@ -118,8 +118,8 @@ export const GoalCarousel: React.FC<GoalCarouselProps> = ({
             style={{ width: CARD_WIDTH }}
             className="px-2 py-2"
           >
-            <View className="w-full bg-white rounded-3xl p-6 shadow-sm">
-              <View className="absolute right-4 top-4">
+            <View className="w-full bg-[#352929] rounded-3xl p-6">
+              <View className="absolute right-2 top-2">
                 <ActionMenu
                   onDelete={() => onRemoveGoal(goal.id)}
                   onUpdate={() => onUpdateGoal(goal.id)}
@@ -128,25 +128,25 @@ export const GoalCarousel: React.FC<GoalCarouselProps> = ({
               </View>
               <View className="flex-row items-center">
                 {/* Progress Circle */}
-                <View className="h-20 w-20 rounded-full border-4 border-gray-100 items-center justify-center">
+                <View className="h-20 w-20 rounded-full border-2 border-gray-100 items-center justify-center">
                   <View
-                    className="h-20 w-20 rounded-full border-4 border-green-500 absolute"
+                    className="h-20 w-20 rounded-full border-2 border-orange-500 absolute"
                     style={{
                       borderTopColor: "transparent",
                       transform: [{ rotate: "-45deg" }],
                     }}
                   />
-                  <Text className="text-lg font-semibold">{75}%</Text>
+                  <Text className="text-lg text-white font-semibold">{75}%</Text>
                 </View>
 
                 <View className="ml-6 flex-1">
                   <Text
-                    className="text-xl font-semibold text-gray-800 break-all line-clamp-2 mb-2"
+                    className="text-xl font-semibold text-white break-all line-clamp-2 mb-2"
                   >
                     {goal.content}
                   </Text>
-                  <Text className="text-gray-500">
-                    Day {0} of {goal.durationDays}
+                  <Text className="text-[#d9d9d9] text-sm">
+                    Day {15} of {goal.durationDays}
                   </Text>
                 </View>
               </View>

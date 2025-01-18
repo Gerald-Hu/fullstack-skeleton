@@ -22,7 +22,7 @@ interface TaskItemProps {
   duration: string;
   id: string;
   onDelete?: (id: string) => void;
-  onComplete?: (id: string) => void;
+  onToggleState?: (id: string) => void;
   onEdit?: (id: string) => void;
   status: Task["status"];
 }
@@ -36,7 +36,7 @@ export const TaskItem = ({
   duration,
   id,
   onDelete,
-  onComplete,
+  onToggleState,
   onEdit,
   status,
 }: TaskItemProps) => {
@@ -174,17 +174,21 @@ export const TaskItem = ({
         <GestureDetector gesture={gesture}>
           <Animated.View
             style={rStyle}
-            className={`${status === "completed" ? "bg-green-100" : "bg-white"} rounded-2xl p-4 flex-row items-center`}
+            className={`${status === "completed" ? "bg-[#6d6d6d]" : "bg-[#fefefe]"} rounded-2xl p-4 flex-row items-center`}
           >
             <TouchableOpacity
-              className={`h-6 w-6 rounded-full border-2 border-green-500 mr-4 ${status === "completed" ? "bg-green-500" : "bg-white"}`}
-              onPress={() => onComplete && onComplete(id)}
-            />
+              className={`h-8 w-8 rounded-full mr-4 items-center justify-center ${status === "completed" ? "bg-[#352929]" : "bg-[#d9d9d9]"}`}
+              onPress={() => onToggleState && onToggleState(id)}
+            >
+              {status === "completed" && (
+                <Feather name="check" size={20} color="white" />
+              )}
+            </TouchableOpacity>
             <View className="flex-1">
-              <Text className="text-gray-800 font-medium break-all mb-1">
+              <Text className={`font-medium break-all mb-1 ${status === "completed" ? "line-through text-[#b0b0b0]" : "text-gray-800"}`}>
                 {title}
               </Text>
-              <Text className="text-gray-500">{duration}</Text>
+              <Text className="text-[#979797] text-sm">{duration}</Text>
             </View>
           </Animated.View>
         </GestureDetector>
